@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, CARD_STYLES, User } from '@/lib/supabase'
 import Link from 'next/link'
+export const dynamic = 'force-dynamic';
 
 // 所属の順序
 const DEPARTMENT_ORDER = [

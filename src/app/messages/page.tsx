@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { User } from '@supabase/supabase-js';
+export const dynamic = 'force-dynamic';
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
