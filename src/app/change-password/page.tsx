@@ -60,9 +60,17 @@ export default function ChangePasswordPage() {
       setTimeout(() => {
         router.push('/messages')
       }, 2000)
-    } catch (error: any) {
-      setMessage('❌ パスワード変更に失敗しました: ' + error.message)
-      setMessageType('error')
+    } catch (error: unknown) { // ← より安全なunknown型に変更
+  let errorMessage = '不明なエラーが発生しました。';
+
+  // errorがErrorオブジェクトか確認し、そうであればmessageプロパティを取得
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+  
+  // 安全に取得したメッセージを使ってstateを更新
+  setMessage('❌ パスワード変更に失敗しました: ' + errorMessage)
+  setMessageType('error')
     } finally {
       setLoading(false)
     }

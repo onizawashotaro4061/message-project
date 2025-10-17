@@ -71,22 +71,39 @@ export async function POST(request: Request) {
         }
 
         console.log(`✅ アカウント作成: ${executive.name}`)
-      } catch (error: any) {
-        results.push({
-          ...executive,
-          created: false,
-          error: error.message,
-        })
-        console.error(`❌ 失敗: ${executive.name} - ${error.message}`)
+      } catch (error: unknown) { // ← より安全なunknown型に変更
+  // エラーメッセージを安全に取得するための変数を定義
+  let errorMessage = '不明なエラーが発生しました';
+
+  // errorがErrorオブジェクトか確認し、そうであればmessageプロパティを取得
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+
+  results.push({
+    ...executive,
+    created: false,
+    error: errorMessage, // ← 安全に取得したメッセージを使用
+  })
+  console.error(`❌ 失敗: ${executive.name} - ${errorMessage}`)
       }
     }
 
     return NextResponse.json({ results })
-  } catch (error: any) {
-    console.error('API Error:', error)
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+  } catch (error: unknown) { // ← より安全なunknown型に変更
+  console.error('API Error:', error)
+
+  let errorMessage = 'サーバーで予期せぬエラーが発生しました。';
+
+  // errorがErrorオブジェクトか確認し、そうであればmessageプロパティを取得
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+
+  // 安全に取得したエラーメッセージをレスポンスとして返す
+  return NextResponse.json(
+    { error: errorMessage },
+    { status: 500 }
+  )
   }
 }

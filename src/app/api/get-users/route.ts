@@ -29,11 +29,21 @@ export async function GET() {
     }))
 
     return NextResponse.json({ users })
-  } catch (error: any) {
-    console.error('API Error:', error)
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+  } catch (error: unknown) { // ← より安全な'unknown'型に変更
+  console.error('API Error:', error)
+
+  // 返却するエラーメッセージを安全に取得するための変数を定義
+  let errorMessage = 'サーバーで予期せぬエラーが発生しました。';
+
+  // errorがJavaScriptの標準的なErrorオブジェクトかを確認する
+  if (error instanceof Error) {
+    errorMessage = error.message; // Errorオブジェクトであれば、安全に.messageプロパティを取得
+  }
+
+  // 安全に取得したエラーメッセージをレスポンスとして返す
+  return NextResponse.json(
+    { error: errorMessage },
+    { status: 500 }
+  )
   }
 }
