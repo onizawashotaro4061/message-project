@@ -5,11 +5,12 @@ import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { User } from '@supabase/supabase-js';
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter()
 
   useEffect(() => {
