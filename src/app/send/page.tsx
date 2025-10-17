@@ -190,7 +190,7 @@ export default function SendMessagePage() {
                     setSelectedDepartment(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
                 >
                   <option value="">すべて</option>
                   {departments.map(dept => (
@@ -212,7 +212,7 @@ export default function SendMessagePage() {
                     setSearchQuery(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
                 />
               </div>
 
@@ -226,7 +226,7 @@ export default function SendMessagePage() {
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     required
-                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white"
+                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
                     size={Math.min(filteredUsers.length || 1, 8)}
                   >
                     <option value="">-- 選択してください --</option>
@@ -253,7 +253,7 @@ export default function SendMessagePage() {
                   onChange={(e) => setSenderName(e.target.value)}
                   required
                   maxLength={50}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
                   placeholder="山田太郎"
                 />
               </div>
@@ -269,7 +269,7 @@ export default function SendMessagePage() {
                   required
                   maxLength={1000}
                   rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-900"
                   placeholder="メッセージを入力してください..."
                 />
                 <p className="text-xs text-gray-500 mt-1 text-right">
