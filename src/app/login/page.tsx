@@ -35,7 +35,7 @@ export default function LoginPage() {
       
       if (error) throw error
       router.push('/messages')
-    } catch (error: any) {
+    } catch (error) {
       setMessage('❌ メールアドレスまたはパスワードが正しくありません')
     } finally {
       setLoading(false)

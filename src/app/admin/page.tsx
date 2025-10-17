@@ -60,13 +60,14 @@ export default function AdminPage() {
       }
 
       const data = await response.json()
-      const createdResults = data.results
+      const createdResults = data.results as CreatedUser[]
 
       setResults(createdResults)
-      const successCount = createdResults.filter((r: any) => r.created).length
+      const successCount = createdResults.filter((r) => r.created).length
       alert(`${successCount}/${EXECUTIVES.length} 人のアカウントを作成しました`)
-    } catch (error: any) {
-      alert('アカウント作成に失敗しました: ' + error.message)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'アカウント作成に失敗しました'
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }
