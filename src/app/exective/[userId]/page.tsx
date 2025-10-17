@@ -1,33 +1,43 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
 
-export default function MessagesPage() {
+export default function ExecutiveMessagePage() {
+  const params = useParams()
+  const router = useRouter()
+  const userId = params.userId as string
+
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const router = useRouter()
+  const [authenticated, setAuthenticated] = useState(false)
+  const [userName, setUserName] = useState('')
 
   useEffect(() => {
-    checkUser()
+    // URLからパスワードを取得
+    const searchParams = new URLSearchParams(window.location.search)
+    const password = searchParams.get('password')
+
+    if (password) {
+      setAuthenticated(true)
+      loadMessages()
+      loadUserName()
+    }
   }, [])
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/login')
-      return
+  const loadUserName = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.admin.getUserById(userId)
+      if (!error && user) {
+        setUserName(user.user_metadata?.display_name || user.email || '')
+      }
+    } catch (error) {
+      console.error('Error loading user:', error)
     }
-
-    setUser(user)
-    loadMessages(user.id)
   }
 
-  const loadMessages = async (userId: string) => {
+  const loadMessages = async () => {
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -44,9 +54,26 @@ export default function MessagesPage() {
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">🔐</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            ご確認ください
+          </h1>
+          <p className="text-gray-600 mb-6">
+            無効なアクセスです
+          </p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+          >
+            ホームに戻る
+          </a>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
@@ -61,46 +88,23 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">あなたへのメッセージ</h1>
-            <div className="space-x-2">
-              <Link
-                href="/send"
-                className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
-              >
-                メッセージを送る
-              </Link>
-              <Link
-                href="/change-password"
-                className="inline-block px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
-              >
-                パスワード変更
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-              >
-                ログアウト
-              </button>
-            </div>
-          </div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            🎉 {userName}さんへ
+          </h1>
+          <p className="text-gray-600 text-lg">
+            みんなからのメッセージです
+          </p>
         </div>
 
         {messages.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
             <div className="text-6xl mb-4">📭</div>
             <p className="text-gray-600 text-lg font-semibold">
-              まだメッセージがありません
+              メッセージはまだありません
             </p>
-            <p className="text-gray-500 text-sm mt-2 mb-6">
-              友達がメッセージを送るのを待ちましょう！
+            <p className="text-gray-500 text-sm mt-2">
+              メッセージが届くまでお待ちください...
             </p>
-            <Link
-              href="/send"
-              className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
-            >
-              メッセージを送る
-            </Link>
           </div>
         ) : (
           <div className="space-y-4">

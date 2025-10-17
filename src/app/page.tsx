@@ -1,27 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (user) {
-      router.push('/messages')
-    }
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="text-center max-w-2xl">
@@ -59,10 +40,10 @@ export default function HomePage() {
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-4xl mb-3">🖼️</div>
-            <h3 className="font-bold text-gray-900 mb-2">画像付き</h3>
+            <div className="text-4xl mb-3">✍️</div>
+            <h3 className="font-bold text-gray-900 mb-2">1000文字</h3>
             <p className="text-sm text-gray-600">
-              メッセージと一緒に画像も送信できます
+              たっぷり1000文字までメッセージが書けます
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6">
