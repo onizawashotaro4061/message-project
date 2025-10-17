@@ -47,11 +47,11 @@ export default function SendMessagePage() {
       }
 
       const data = await response.json()
-      const formattedUsers = data.users.map((u: any) => ({
+      const formattedUsers = data.users.map((u: User) => ({
         id: u.id,
         email: u.email || '',
         user_metadata: u.user_metadata || {},
-        department: u.user_metadata?.department || '未分類',
+        department: (u.user_metadata as { department?: string })?.department || '未分類',
       }))
       
       // 所属順にソート
@@ -117,8 +117,15 @@ export default function SendMessagePage() {
       setSelectedUserId('')
       setSelectedDepartment('')
       setSearchQuery('')
-    } catch (error: any) {
-      alert('エラーが発生しました: ' + error.message)
+    } catch (error: unknown) { // ← anyの代わりに、より安全なunknown型を使う
+  // errorがErrorクラスのインスタンスかを確認
+  if (error instanceof Error) {
+    alert('エラーが発生しました: ' + error.message);
+  } else {
+    // もし予期せぬもの(文字列など)が投げられた場合
+    alert('不明なエラーが発生しました');
+    console.error('Caught an unknown error:', error);
+  }
     } finally {
       setSubmitting(false)
     }
