@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [setUser] = useState<any>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,8 +38,13 @@ export default function MessagesPage() {
 
       if (error) throw error
       setMessages(data || [])
-    } catch (error) {
-      console.error('Error loading messages:', error)
+    } catch (error: unknown) { // any の代わりに unknown を使う
+  // error が本当にErrorオブジェクトか確認してからプロパティにアクセスする
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else {
+    console.error('An unknown error occurred');
+  }
     } finally {
       setLoading(false)
     }
@@ -141,7 +147,7 @@ function MessageCard({ message }: { message: Message }) {
 
       {message.image_url && (
         <div className="mb-4 rounded-lg overflow-hidden">
-          <img
+          <Image
             src={message.image_url}
             alt="Message"
             className="w-full max-h-96 object-cover"
