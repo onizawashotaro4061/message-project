@@ -135,9 +135,6 @@ function MessageCard({ message }: { message: Message }) {
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-            {message.sender_name.charAt(0).toUpperCase()}
-          </div>
           <div>
             <p className="font-semibold text-lg">{message.sender_name}</p>
             <p className="text-xs opacity-70">

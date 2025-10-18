@@ -350,9 +350,6 @@ function MessageCardPreview({
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-xl p-6 ${style.textColor}`}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-          {(senderName || '?').charAt(0).toUpperCase()}
-        </div>
         <div>
           <p className="font-semibold">{senderName || 'お名前'}</p>
           <p className="text-xs opacity-70">今</p>
