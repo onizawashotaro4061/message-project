@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-export const dynamic = 'force-dynamic';
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -47,7 +47,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">💌</div>
           <h1 className="text-3xl font-bold text-gray-800">寄せ書き</h1>
         </div>
 
@@ -96,9 +95,12 @@ export default function LoginPage() {
         )}
 
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mb-3">
             初回ログイン時は仮パスワードを使用してください
           </p>
+          <Link href="/signup" className="text-sm text-indigo-600 hover:underline font-medium">
+            アカウントをお持ちでない方は新規登録
+          </Link>
         </div>
       </div>
     </div>

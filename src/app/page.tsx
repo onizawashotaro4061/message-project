@@ -6,7 +6,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="text-center max-w-2xl">
-        <div className="text-7xl mb-6 animate-bounce">💌</div>
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
           寄せ書き
         </h1>
@@ -21,13 +20,19 @@ export default function HomePage() {
             href="/send"
             className="block px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg hover:shadow-xl"
           >
-            💌 メッセージを送る
+            メッセージを送る
           </Link>
           <Link
             href="/login"
             className="block px-8 py-4 bg-gray-800 text-white rounded-xl font-bold text-lg hover:bg-gray-900 transition shadow-lg hover:shadow-xl"
           >
-            📝 メッセージを確認
+            メッセージを確認
+          </Link>
+          <Link
+            href="/signup"
+            className="block px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl"
+          >
+            ✨ 新規登録
           </Link>
         </div>
 
