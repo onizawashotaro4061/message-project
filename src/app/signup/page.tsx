@@ -23,6 +23,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
+  const [furigana, setFurigana] = useState('')
   const [department, setDepartment] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')

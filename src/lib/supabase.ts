@@ -18,6 +18,9 @@ export type User = {
   email: string
   user_metadata?: {
     display_name?: string
+    furigana?: string
+    department?: string
+    role?: string
   }
 }
 

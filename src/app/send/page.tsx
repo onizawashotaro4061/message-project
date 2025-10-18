@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, CARD_STYLES, User } from '@/lib/supabase'
 import Link from 'next/link'
-export const dynamic = 'force-dynamic';
 
 // 所属の順序
 const DEPARTMENT_ORDER = [
@@ -48,11 +47,15 @@ export default function SendMessagePage() {
       }
 
       const data = await response.json()
-      const formattedUsers = data.users.map((u: User) => ({
+      const formattedUsers = data.users.map((u: {
+        id: string
+        email: string
+        user_metadata: { display_name?: string; department?: string }
+      }) => ({
         id: u.id,
         email: u.email || '',
         user_metadata: u.user_metadata || {},
-        department: (u.user_metadata as { department?: string })?.department || '未分類',
+        department: u.user_metadata?.department || '未分類',
       }))
       
       // 所属順にソート
@@ -89,8 +92,16 @@ export default function SendMessagePage() {
   // フィルタリングされたユーザーを取得
   const filteredUsers = users.filter(user => {
     const displayName = user.user_metadata?.display_name || ''
+    const furigana = user.user_metadata?.furigana || ''
+    const email = user.email.toLowerCase()
+    const query = searchQuery.toLowerCase()
+    
     const matchesDepartment = !selectedDepartment || user.department === selectedDepartment
-    const matchesSearch = !searchQuery || displayName.includes(searchQuery)
+    const matchesSearch = !searchQuery || 
+      displayName.includes(searchQuery) ||
+      furigana.includes(query) ||
+      email.includes(query)
+    
     return matchesDepartment && matchesSearch
   })
 
@@ -118,15 +129,9 @@ export default function SendMessagePage() {
       setSelectedUserId('')
       setSelectedDepartment('')
       setSearchQuery('')
-    } catch (error: unknown) { // ← anyの代わりに、より安全なunknown型を使う
-  // errorがErrorクラスのインスタンスかを確認
-  if (error instanceof Error) {
-    alert('エラーが発生しました: ' + error.message);
-  } else {
-    // もし予期せぬもの(文字列など)が投げられた場合
-    alert('不明なエラーが発生しました');
-    console.error('Caught an unknown error:', error);
-  }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました'
+      alert('エラーが発生しました: ' + errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -166,7 +171,7 @@ export default function SendMessagePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">メッセージを送る</h1>
+          <h1 className="text-3xl font-bold text-gray-800">💌 メッセージを送る</h1>
           <Link
             href="/messages"
             className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-600 transition font-medium"
@@ -191,7 +196,7 @@ export default function SendMessagePage() {
                     setSelectedDepartment(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
                 >
                   <option value="">すべて</option>
                   {departments.map(dept => (
@@ -213,7 +218,7 @@ export default function SendMessagePage() {
                     setSearchQuery(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -227,7 +232,7 @@ export default function SendMessagePage() {
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     required
-                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white"
                     size={Math.min(filteredUsers.length || 1, 8)}
                   >
                     <option value="">-- 選択してください --</option>
@@ -254,7 +259,7 @@ export default function SendMessagePage() {
                   onChange={(e) => setSenderName(e.target.value)}
                   required
                   maxLength={50}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   placeholder="山田太郎"
                 />
               </div>
@@ -270,7 +275,7 @@ export default function SendMessagePage() {
                   required
                   maxLength={1000}
                   rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
                   placeholder="メッセージを入力してください..."
                 />
                 <p className="text-xs text-gray-500 mt-1 text-right">
