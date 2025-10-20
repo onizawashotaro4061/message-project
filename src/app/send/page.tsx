@@ -32,8 +32,6 @@ export default function SendMessagePage() {
   const [currentUser, setCurrentUser] = useState<UserWithDept | null>(null)
   const [message, setMessage] = useState('')
   const [selectedStyle, setSelectedStyle] = useState('classic')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -114,37 +112,6 @@ export default function SendMessagePage() {
     return matchesDepartment && matchesSearch
   })
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImageFile(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const uploadImage = async (): Promise<string | null> => {
-    if (!imageFile) return null
-    try {
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}`
-      const { error } = await supabase.storage
-        .from('message-images')
-        .upload(`public/${fileName}`, imageFile)
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage
-        .from('message-images')
-        .getPublicUrl(`public/${fileName}`)
-      return publicUrl
-    } catch (error) {
-      console.error('Image upload error:', error)
-      alert('画像アップロードに失敗しました')
-      return null
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedUserId) {
@@ -164,17 +131,11 @@ export default function SendMessagePage() {
 
     setSubmitting(true)
     try {
-      let imageUrl = null
-      if (imageFile) {
-        imageUrl = await uploadImage()
-      }
-
       const { error } = await supabase.from('messages').insert({
         recipient_id: selectedUserId,
         sender_id: currentUser.id,
         sender_name: currentUser.user_metadata.display_name,
         message: message,
-        image_url: imageUrl,
         card_style: selectedStyle,
       })
 
@@ -185,8 +146,6 @@ export default function SendMessagePage() {
       setSelectedUserId('')
       setSelectedDepartment('')
       setSearchQuery('')
-      setImageFile(null)
-      setImagePreview('')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました'
       alert('エラーが発生しました: ' + errorMessage)
@@ -325,48 +284,6 @@ export default function SendMessagePage() {
                 </p>
               </div>
 
-              {/* 画像アップロード */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  画像（任意）
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    id="image-input"
-                  />
-                  {imagePreview ? (
-                    <div>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="max-h-48 mx-auto rounded-lg mb-2"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImageFile(null)
-                          setImagePreview('')
-                        }}
-                        className="text-sm text-red-600 hover:text-red-800"
-                      >
-                        削除
-                      </button>
-                    </div>
-                  ) : (
-                    <label htmlFor="image-input" className="cursor-pointer">
-                      <div className="text-4xl mb-2">🖼️</div>
-                      <p className="text-gray-600">クリックして画像を選択</p>
-                      <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF など</p>
-                    </label>
-                  )}
-                </div>
-              </div>
-
               {/* カードデザイン選択 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -399,7 +316,6 @@ export default function SendMessagePage() {
                 <MessageCardPreview
                   senderName={currentUser?.user_metadata?.display_name || 'あなた'}
                   message={message}
-                  imagePreview={imagePreview}
                   cardStyle={selectedStyle}
                 />
               </div>
@@ -422,12 +338,10 @@ export default function SendMessagePage() {
 function MessageCardPreview({
   senderName,
   message,
-  imagePreview,
   cardStyle,
 }: {
   senderName: string
   message: string
-  imagePreview?: string
   cardStyle: string
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
@@ -440,17 +354,6 @@ function MessageCardPreview({
         <p className="font-semibold text-lg">{senderName || 'お名前'}</p>
         <p className="text-xs opacity-70">今</p>
       </div>
-
-      {imagePreview && (
-        <div className="mb-4 rounded-lg overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imagePreview}
-            alt="Preview"
-            className="w-full max-h-64 object-cover"
-          />
-        </div>
-      )}
 
       <p className="whitespace-pre-wrap leading-relaxed text-sm">
         {message || 'メッセージがここに表示されます...'}

@@ -5,8 +5,12 @@ import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+type MessageWithSender = Message & {
+  sender_avatar_url?: string
+}
+
 export default function MessagesPage() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessageWithSender[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -34,7 +38,29 @@ export default function MessagesPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setMessages(data || [])
+      
+      // 送信者のアバターURLを取得
+      const messagesWithAvatars = await Promise.all(
+        (data || []).map(async (msg) => {
+          const response = await fetch('/api/get-user-by-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: msg.sender_id })
+          })
+          
+          if (response.ok) {
+            const userData = await response.json()
+            return {
+              ...msg,
+              sender_avatar_url: userData.user?.user_metadata?.avatar_url || null
+            }
+          }
+          
+          return { ...msg, sender_avatar_url: null }
+        })
+      )
+      
+      setMessages(messagesWithAvatars)
     } catch (error) {
       console.error('Error loading messages:', error)
     } finally {
@@ -60,7 +86,18 @@ export default function MessagesPage() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">あなたへのメッセージ</h1>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-gray-800 transition"
+                title="ホームへ"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </Link>
+              <h1 className="text-3xl font-bold text-gray-800">あなたへのメッセージ</h1>
+            </div>
             <div className="space-x-2">
               <Link
                 href="/send"
@@ -73,6 +110,12 @@ export default function MessagesPage() {
                 className="inline-block px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
               >
                 送信済み
+              </Link>
+              <Link
+                href="/profile"
+                className="inline-block px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+              >
+                プロフィール
               </Link>
               <Link
                 href="/change-password"
@@ -121,7 +164,7 @@ export default function MessagesPage() {
   )
 }
 
-function MessageCard({ messageData }: { messageData: Message }) {
+function MessageCard({ messageData }: { messageData: MessageWithSender }) {
   const style =
     CARD_STYLES.find((s) => s.id === messageData.card_style) || CARD_STYLES[0]
 
@@ -129,23 +172,28 @@ function MessageCard({ messageData }: { messageData: Message }) {
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition ${style.textColor}`}
     >
-      <div className="mb-4">
-        <p className="font-semibold text-lg">{messageData.sender_name}</p>
-        <p className="text-xs opacity-70">
-          {new Date(messageData.created_at).toLocaleString('ja-JP')}
-        </p>
-      </div>
-
-      {messageData.image_url && (
-        <div className="mb-4 rounded-lg overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={messageData.image_url}
-            alt="Message"
-            className="w-full max-h-96 object-cover"
-          />
+      <div className="flex items-start gap-4 mb-4">
+        {/* アイコン画像 */}
+        <div className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/50">
+          {messageData.sender_avatar_url ? (
+            <img
+              src={messageData.sender_avatar_url}
+              alt={messageData.sender_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="text-2xl">👤</div>
+          )}
         </div>
-      )}
+        
+        {/* 送信者情報 */}
+        <div className="flex-1">
+          <p className="font-semibold text-lg">{messageData.sender_name}</p>
+          <p className="text-xs opacity-70">
+            {new Date(messageData.created_at).toLocaleString('ja-JP')}
+          </p>
+        </div>
+      </div>
 
       <p className="whitespace-pre-wrap leading-relaxed">
         {messageData.message}
