@@ -29,15 +29,30 @@ export default function SendMessagePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
-  const [senderName, setSenderName] = useState('')
+  const [currentUser, setCurrentUser] = useState<UserWithDept | null>(null)
   const [message, setMessage] = useState('')
   const [selectedStyle, setSelectedStyle] = useState('classic')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     loadUsers()
+    checkCurrentUser()
   }, [])
+
+  const checkCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setCurrentUser({
+        id: user.id,
+        email: user.email || '',
+        user_metadata: user.user_metadata || {},
+        department: user.user_metadata?.department || '未分類',
+      })
+    }
+  }
 
   const loadUsers = async () => {
     try {
@@ -92,18 +107,43 @@ export default function SendMessagePage() {
   // フィルタリングされたユーザーを取得
   const filteredUsers = users.filter(user => {
     const displayName = user.user_metadata?.display_name || ''
-    const furigana = user.user_metadata?.furigana || ''
-    const email = user.email.toLowerCase()
-    const query = searchQuery.toLowerCase()
     
     const matchesDepartment = !selectedDepartment || user.department === selectedDepartment
-    const matchesSearch = !searchQuery || 
-      displayName.includes(searchQuery) ||
-      furigana.includes(query) ||
-      email.includes(query)
+    const matchesSearch = !searchQuery || displayName.includes(searchQuery)
     
     return matchesDepartment && matchesSearch
   })
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null
+    try {
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+      const { error } = await supabase.storage
+        .from('message-images')
+        .upload(`public/${fileName}`, imageFile)
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage
+        .from('message-images')
+        .getPublicUrl(`public/${fileName}`)
+      return publicUrl
+    } catch (error) {
+      console.error('Image upload error:', error)
+      alert('画像アップロードに失敗しました')
+      return null
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,23 +152,41 @@ export default function SendMessagePage() {
       return
     }
 
+    if (!currentUser?.id) {
+      alert('ログインユーザー情報が取得できません')
+      return
+    }
+
+    if (!currentUser?.user_metadata?.display_name) {
+      alert('表示名が設定されていません')
+      return
+    }
+
     setSubmitting(true)
     try {
+      let imageUrl = null
+      if (imageFile) {
+        imageUrl = await uploadImage()
+      }
+
       const { error } = await supabase.from('messages').insert({
         recipient_id: selectedUserId,
-        sender_name: senderName,
+        sender_id: currentUser.id,
+        sender_name: currentUser.user_metadata.display_name,
         message: message,
+        image_url: imageUrl,
         card_style: selectedStyle,
       })
 
       if (error) throw error
       setSubmitted(true)
-      setSenderName('')
       setMessage('')
       setSelectedStyle('classic')
       setSelectedUserId('')
       setSelectedDepartment('')
       setSearchQuery('')
+      setImageFile(null)
+      setImagePreview('')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました'
       alert('エラーが発生しました: ' + errorMessage)
@@ -171,7 +229,7 @@ export default function SendMessagePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">メッセージを送る</h1>
+          <h1 className="text-3xl font-bold text-gray-800">💌 メッセージを送る</h1>
           <Link
             href="/messages"
             className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-600 transition font-medium"
@@ -196,7 +254,7 @@ export default function SendMessagePage() {
                     setSelectedDepartment(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-800"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
                 >
                   <option value="">すべて</option>
                   {departments.map(dept => (
@@ -218,7 +276,7 @@ export default function SendMessagePage() {
                     setSearchQuery(e.target.value)
                     setSelectedUserId('')
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-800"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
                 />
               </div>
 
@@ -232,7 +290,7 @@ export default function SendMessagePage() {
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     required
-                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white text-gray-800"
+                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
                     size={Math.min(filteredUsers.length || 1, 8)}
                   >
                     <option value="">-- 選択してください --</option>
@@ -248,22 +306,6 @@ export default function SendMessagePage() {
                 </p>
               </div>
 
-              {/* 送信者名 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  あなたのお名前 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={senderName}
-                  onChange={(e) => setSenderName(e.target.value)}
-                  required
-                  maxLength={50}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-800"
-                  placeholder="山田太郎"
-                />
-              </div>
-
               {/* メッセージ */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -275,12 +317,54 @@ export default function SendMessagePage() {
                   required
                   maxLength={1000}
                   rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-900"
                   placeholder="メッセージを入力してください..."
                 />
                 <p className="text-xs text-gray-500 mt-1 text-right">
                   {message.length} / 1000
                 </p>
+              </div>
+
+              {/* 画像アップロード */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  画像（任意）
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-input"
+                  />
+                  {imagePreview ? (
+                    <div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="max-h-48 mx-auto rounded-lg mb-2"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null)
+                          setImagePreview('')
+                        }}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  ) : (
+                    <label htmlFor="image-input" className="cursor-pointer">
+                      <div className="text-4xl mb-2">🖼️</div>
+                      <p className="text-gray-600">クリックして画像を選択</p>
+                      <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF など</p>
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* カードデザイン選択 */}
@@ -313,15 +397,16 @@ export default function SendMessagePage() {
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-3">プレビュー</p>
                 <MessageCardPreview
-                  senderName={senderName}
+                  senderName={currentUser?.user_metadata?.display_name || 'あなた'}
                   message={message}
+                  imagePreview={imagePreview}
                   cardStyle={selectedStyle}
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={submitting || !senderName || !message || !selectedUserId}
+                disabled={submitting || !message || !selectedUserId}
                 className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-lg"
               >
                 {submitting ? '送信中...' : 'メッセージを送信'}
@@ -337,10 +422,12 @@ export default function SendMessagePage() {
 function MessageCardPreview({
   senderName,
   message,
+  imagePreview,
   cardStyle,
 }: {
   senderName: string
   message: string
+  imagePreview?: string
   cardStyle: string
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
@@ -349,12 +436,21 @@ function MessageCardPreview({
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-xl p-6 ${style.textColor}`}
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div>
-          <p className="font-semibold">{senderName || 'お名前'}</p>
-          <p className="text-xs opacity-70">今</p>
-        </div>
+      <div className="mb-4">
+        <p className="font-semibold text-lg">{senderName || 'お名前'}</p>
+        <p className="text-xs opacity-70">今</p>
       </div>
+
+      {imagePreview && (
+        <div className="mb-4 rounded-lg overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="w-full max-h-64 object-cover"
+          />
+        </div>
+      )}
 
       <p className="whitespace-pre-wrap leading-relaxed text-sm">
         {message || 'メッセージがここに表示されます...'}

@@ -6,6 +6,7 @@ export const supabase = createClientComponentClient()
 export type Message = {
   id: string
   recipient_id: string
+  sender_id: string
   sender_name: string
   message: string
   image_url?: string
@@ -18,7 +19,6 @@ export type User = {
   email: string
   user_metadata?: {
     display_name?: string
-    furigana?: string
     department?: string
     role?: string
   }

@@ -4,31 +4,26 @@ import { useEffect, useState } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
-import { User } from '@supabase/supabase-js';
-export const dynamic = 'force-dynamic';
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter()
 
   useEffect(() => {
-    checkUser()
-  }, [])
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-    if (!user) {
-      router.push('/login')
-      return
+      loadMessages(user.id)
     }
-
-    setUser(user)
-    loadMessages(user.id)
-  }
+    
+    checkUser()
+  }, [router])
 
   const loadMessages = async (userId: string) => {
     try {
@@ -40,13 +35,8 @@ export default function MessagesPage() {
 
       if (error) throw error
       setMessages(data || [])
-    } catch (error: unknown) { // any の代わりに unknown を使う
-  // error が本当にErrorオブジェクトか確認してからプロパティにアクセスする
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error('An unknown error occurred');
-  }
+    } catch (error) {
+      console.error('Error loading messages:', error)
     } finally {
       setLoading(false)
     }
@@ -77,6 +67,12 @@ export default function MessagesPage() {
                 className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
               >
                 メッセージを送る
+              </Link>
+              <Link
+                href="/sent"
+                className="inline-block px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+              >
+                送信済み
               </Link>
               <Link
                 href="/change-password"
@@ -115,8 +111,8 @@ export default function MessagesPage() {
             <div className="text-sm font-semibold text-gray-700 mb-4">
               {messages.length} 件のメッセージ
             </div>
-            {messages.map((message) => (
-              <MessageCard key={message.id} message={message} />
+            {messages.map((msg) => (
+              <MessageCard key={msg.id} messageData={msg} />
             ))}
           </div>
         )}
@@ -125,29 +121,26 @@ export default function MessagesPage() {
   )
 }
 
-function MessageCard({ message }: { message: Message }) {
+function MessageCard({ messageData }: { messageData: Message }) {
   const style =
-    CARD_STYLES.find((s) => s.id === message.card_style) || CARD_STYLES[0]
+    CARD_STYLES.find((s) => s.id === messageData.card_style) || CARD_STYLES[0]
 
   return (
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition ${style.textColor}`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="font-semibold text-lg">{message.sender_name}</p>
-            <p className="text-xs opacity-70">
-              {new Date(message.created_at).toLocaleString('ja-JP')}
-            </p>
-          </div>
-        </div>
+      <div className="mb-4">
+        <p className="font-semibold text-lg">{messageData.sender_name}</p>
+        <p className="text-xs opacity-70">
+          {new Date(messageData.created_at).toLocaleString('ja-JP')}
+        </p>
       </div>
 
-      {message.image_url && (
+      {messageData.image_url && (
         <div className="mb-4 rounded-lg overflow-hidden">
-          <Image
-            src={message.image_url}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={messageData.image_url}
             alt="Message"
             className="w-full max-h-96 object-cover"
           />
@@ -155,7 +148,7 @@ function MessageCard({ message }: { message: Message }) {
       )}
 
       <p className="whitespace-pre-wrap leading-relaxed">
-        {message.message}
+        {messageData.message}
       </p>
     </div>
   )
