@@ -5,9 +5,10 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import imageCompression from 'browser-image-compression'
+import { User } from '@supabase/supabase-js'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [department, setDepartment] = useState('')
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string>('')
