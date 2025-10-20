@@ -16,34 +16,50 @@ export async function GET() {
       }
     )
 
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers()
+    // 全ユーザーを取得（ページネーション対応）
+    let allUsers: any[] = []
+    let page = 1
+    const perPage = 1000 // 1ページあたりの取得数
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    while (true) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+        page: page,
+        perPage: perPage
+      })
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      allUsers = allUsers.concat(data.users)
+
+      // 取得したユーザー数がperPageより少なければ終了
+      if (data.users.length < perPage) {
+        break
+      }
+
+      page++
     }
 
-    const users = data.users.map(u => ({
+    const users = allUsers.map(u => ({
       id: u.id,
       email: u.email || '',
       user_metadata: u.user_metadata || {},
     }))
 
     return NextResponse.json({ users })
-  } catch (error: unknown) { // ← より安全な'unknown'型に変更
-  console.error('API Error:', error)
+  } catch (error: unknown) {
+    console.error('API Error:', error)
 
-  // 返却するエラーメッセージを安全に取得するための変数を定義
-  let errorMessage = 'サーバーで予期せぬエラーが発生しました。';
+    let errorMessage = 'サーバーで予期せぬエラーが発生しました。'
 
-  // errorがJavaScriptの標準的なErrorオブジェクトかを確認する
-  if (error instanceof Error) {
-    errorMessage = error.message; // Errorオブジェクトであれば、安全に.messageプロパティを取得
-  }
+    if (error instanceof Error) {
+      errorMessage = error.message
+    }
 
-  // 安全に取得したエラーメッセージをレスポンスとして返す
-  return NextResponse.json(
-    { error: errorMessage },
-    { status: 500 }
-  )
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    )
   }
 }

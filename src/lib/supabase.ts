@@ -24,47 +24,145 @@ export type User = {
   }
 }
 
-export const CARD_STYLES = [
+export type CardStyle = {
+  id: string
+  name: string
+  bgGradient: string
+  borderColor: string
+  textColor: string
+  departments?: string[]
+  roles?: string[]
+}
+
+export const CARD_STYLES: CardStyle[] = [
+  // 共通カード（テーマカラー3種類のみ）
   {
-    id: 'classic',
-    name: 'クラシック',
-    bgGradient: 'from-blue-50 to-indigo-100',
-    borderColor: 'border-indigo-200',
+    id: 'enkou',
+    name: '焔紅',
+    bgGradient: 'from-rose-100 to-red-200',
+    borderColor: 'border-rose-400',
     textColor: 'text-gray-800',
   },
   {
-    id: 'warm',
-    name: 'ウォーム',
-    bgGradient: 'from-orange-50 to-yellow-100',
-    borderColor: 'border-orange-200',
+    id: 'souen',
+    name: '蒼炎',
+    bgGradient: 'from-blue-200 to-blue-300',
+    borderColor: 'border-blue-400',
     textColor: 'text-gray-800',
   },
   {
-    id: 'fresh',
-    name: 'フレッシュ',
-    bgGradient: 'from-green-50 to-emerald-100',
-    borderColor: 'border-green-200',
+    id: 'kikou',
+    name: '軌光',
+    bgGradient: 'from-yellow-200 to-yellow-300',
+    borderColor: 'border-yellow-400',
     textColor: 'text-gray-800',
   },
+
+  // 所属専用カード
   {
-    id: 'romantic',
-    name: 'ロマンティック',
-    bgGradient: 'from-pink-50 to-rose-100',
-    borderColor: 'border-pink-200',
+    id: 'shikoubu',
+    name: '執行部',
+    bgGradient: 'from-indigo-200 to-indigo-300',
+    borderColor: 'border-indigo-500',
     textColor: 'text-gray-800',
+    departments: ['執行部'],
   },
   {
-    id: 'purple',
-    name: 'エレガント',
-    bgGradient: 'from-purple-50 to-indigo-100',
-    borderColor: 'border-purple-200',
+    id: 'uneikyoku',
+    name: '運営局',
+    bgGradient: 'from-cyan-200 to-cyan-300',
+    borderColor: 'border-cyan-500',
     textColor: 'text-gray-800',
+    departments: ['運営局'],
   },
   {
-    id: 'minimal',
-    name: 'ミニマル',
-    bgGradient: 'from-gray-50 to-slate-100',
-    borderColor: 'border-gray-300',
+    id: 'enshukyoku',
+    name: '演出局',
+    bgGradient: 'from-orange-200 to-orange-300',
+    borderColor: 'border-orange-500',
+    textColor: 'text-gray-800',
+    departments: ['演出局'],
+  },
+  {
+    id: 'kaihatsukyoku',
+    name: '開発局',
+    bgGradient: 'from-purple-200 to-purple-300',
+    borderColor: 'border-purple-500',
+    textColor: 'text-gray-800',
+    departments: ['開発局'],
+  },
+  {
+    id: 'kohokyoku',
+    name: '広報局',
+    bgGradient: 'from-pink-200 to-pink-300',
+    borderColor: 'border-pink-500',
+    textColor: 'text-gray-800',
+    departments: ['広報局'],
+  },
+  {
+    id: 'zaimukyoku',
+    name: '財務局',
+    bgGradient: 'from-teal-200 to-teal-300',
+    borderColor: 'border-teal-500',
+    textColor: 'text-gray-800',
+    departments: ['財務局'],
+  },
+  {
+    id: 'sankadantaikyoku',
+    name: '参加団体局',
+    bgGradient: 'from-yellow-200 to-yellow-300',
+    borderColor: 'border-yellow-500',
+    textColor: 'text-gray-800',
+    departments: ['参加団体局'],
+  },
+  {
+    id: 'shogaikyoku',
+    name: '渉外局',
+    bgGradient: 'from-amber-200 to-amber-300',
+    borderColor: 'border-amber-600',
+    textColor: 'text-gray-800',
+    departments: ['渉外局'],
+  },
+  {
+    id: 'seisakukyoku',
+    name: '制作局',
+    bgGradient: 'from-blue-300 to-blue-400',
+    borderColor: 'border-blue-600',
+    textColor: 'text-gray-800',
+    departments: ['制作局'],
+  },
+  {
+    id: 'somukyoku',
+    name: '総務局',
+    bgGradient: 'from-lime-200 to-lime-300',
+    borderColor: 'border-lime-500',
+    textColor: 'text-gray-800',
+    departments: ['総務局'],
+  },
+
+  // 役職専用カード
+  {
+    id: 'executive',
+    name: '役員専用',
+    bgGradient: 'from-amber-400 via-yellow-500 to-amber-600',
+    borderColor: 'border-yellow-600',
     textColor: 'text-gray-900',
+    roles: ['executive'],
+  },
+  {
+    id: 'vice_director',
+    name: '副局長専用',
+    bgGradient: 'from-slate-300 via-gray-300 to-slate-400',
+    borderColor: 'border-gray-600',
+    textColor: 'text-gray-900',
+    roles: ['vice_director'],
+  },
+  {
+    id: 'section_chief',
+    name: '部門長専用',
+    bgGradient: 'from-cyan-400 via-teal-400 to-cyan-500',
+    borderColor: 'border-cyan-600',
+    textColor: 'text-gray-900',
+    roles: ['section_chief'],
   },
 ]

@@ -26,12 +26,13 @@ export default function SendMessagePage() {
   const [users, setUsers] = useState<UserWithDept[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')
+  const [selectedRole, setSelectedRole] = useState('') // 役職フィルター追加
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
   const [currentUser, setCurrentUser] = useState<UserWithDept | null>(null)
   const [message, setMessage] = useState('')
-  const [selectedStyle, setSelectedStyle] = useState('classic')
+  const [selectedStyle, setSelectedStyle] = useState('enkou') // デフォルトを焔紅に変更
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -91,7 +92,7 @@ export default function SendMessagePage() {
     }
   }
 
-  // 部署一覧を取得
+  // 部署と役職の一覧を取得
   const departments = Array.from(
     new Set(users.map(u => u.department || '未分類'))
   ).sort((a, b) => {
@@ -102,14 +103,36 @@ export default function SendMessagePage() {
     return aOrder - bOrder
   })
 
+  // 役職一覧
+  const roles = [
+    { value: 'executive', label: '役員' },
+    { value: 'vice_director', label: '副局長' },
+    { value: 'section_chief', label: '部門長' },
+  ]
+
   // フィルタリングされたユーザーを取得
   const filteredUsers = users.filter(user => {
     const displayName = user.user_metadata?.display_name || ''
     
     const matchesDepartment = !selectedDepartment || user.department === selectedDepartment
+    const matchesRole = !selectedRole || user.user_metadata?.role === selectedRole
     const matchesSearch = !searchQuery || displayName.includes(searchQuery)
     
-    return matchesDepartment && matchesSearch
+    return matchesDepartment && matchesRole && matchesSearch
+  })
+
+  // 現在のユーザーが使えるカードスタイルをフィルタリング
+  const availableStyles = CARD_STYLES.filter(style => {
+    // 共通カード（departmentsもrolesもない）
+    if (!style.departments && !style.roles) return true
+    
+    // 所属専用カード
+    if (style.departments && style.departments.includes(currentUser?.department || '')) return true
+    
+    // 役職専用カード
+    if (style.roles && style.roles.includes(currentUser?.user_metadata?.role || '')) return true
+    
+    return false
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,9 +165,10 @@ export default function SendMessagePage() {
       if (error) throw error
       setSubmitted(true)
       setMessage('')
-      setSelectedStyle('classic')
+      setSelectedStyle('enkou') // デフォルトを焔紅に変更
       setSelectedUserId('')
       setSelectedDepartment('')
+      setSelectedRole('') // 役職フィルターもリセット
       setSearchQuery('')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました'
@@ -222,6 +246,26 @@ export default function SendMessagePage() {
                 </select>
               </div>
 
+              {/* 役職で絞り込み */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  役職で絞り込み
+                </label>
+                <select
+                  value={selectedRole}
+                  onChange={(e) => {
+                    setSelectedRole(e.target.value)
+                    setSelectedUserId('')
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+                >
+                  <option value="">すべて</option>
+                  {roles.map(role => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* 名前で検索 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -290,7 +334,7 @@ export default function SendMessagePage() {
                   カードデザインを選択 <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {CARD_STYLES.map((style) => (
+                  {availableStyles.map((style) => (
                     <button
                       key={style.id}
                       type="button"
@@ -308,6 +352,16 @@ export default function SendMessagePage() {
                     </button>
                   ))}
                 </div>
+                {currentUser?.department && (
+                  <p className="text-xs text-indigo-600 mt-2">
+                    ✨ {currentUser.department}専用カードが使えます！
+                  </p>
+                )}
+                {currentUser?.user_metadata?.role && (
+                  <p className="text-xs text-purple-600 mt-1">
+                    👑 役職専用カードが使えます！
+                  </p>
+                )}
               </div>
 
               {/* プレビュー */}
@@ -315,6 +369,11 @@ export default function SendMessagePage() {
                 <p className="text-sm font-medium text-gray-700 mb-3">プレビュー</p>
                 <MessageCardPreview
                   senderName={currentUser?.user_metadata?.display_name || 'あなた'}
+                  recipientName={
+                    selectedUserId 
+                      ? users.find(u => u.id === selectedUserId)?.user_metadata?.display_name || '未選択'
+                      : '未選択'
+                  }
                   message={message}
                   cardStyle={selectedStyle}
                 />
@@ -337,10 +396,12 @@ export default function SendMessagePage() {
 
 function MessageCardPreview({
   senderName,
+  recipientName,
   message,
   cardStyle,
 }: {
   senderName: string
+  recipientName: string
   message: string
   cardStyle: string
 }) {
@@ -352,7 +413,7 @@ function MessageCardPreview({
     >
       <div className="mb-4">
         <p className="font-semibold text-lg">{senderName || 'お名前'}</p>
-        <p className="text-xs opacity-70">今</p>
+        <p className="text-xs opacity-70">→ {recipientName}</p>
       </div>
 
       <p className="whitespace-pre-wrap leading-relaxed text-sm">
