@@ -220,7 +220,7 @@ export default function SendMessagePage() {
             href="/messages"
             className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-600 transition font-medium"
           >
-            確認
+            受信メッセージ
           </Link>
         </div>
 
