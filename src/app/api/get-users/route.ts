@@ -1,6 +1,7 @@
 // app/api/get-users/route.ts
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import type { User } from '@supabase/supabase-js'
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
     )
 
     // 全ユーザーを取得（ページネーション対応）
-    let allUsers: any[] = []
+    let allUsers: User[] = []
     let page = 1
     const perPage = 1000 // 1ページあたりの取得数
 
