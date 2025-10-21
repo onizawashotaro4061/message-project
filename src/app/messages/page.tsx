@@ -7,10 +7,29 @@ import Link from 'next/link'
 
 type MessageWithSender = Message & {
   sender_avatar_url?: string
+  sender_department?: string
 }
+
+type SortType = 'latest' | 'department'
+
+// 所属の順序
+const DEPARTMENT_ORDER = [
+  '執行部',
+  '運営局',
+  '演出局',
+  '開発局',
+  '広報局',
+  '財務局',
+  '参加団体局',
+  '渉外局',
+  '制作局',
+  '総務局',
+]
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<MessageWithSender[]>([])
+  const [sortedMessages, setSortedMessages] = useState<MessageWithSender[]>([])
+  const [sortType, setSortType] = useState<SortType>('latest')
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -29,18 +48,22 @@ export default function MessagesPage() {
     checkUser()
   }, [router])
 
+  useEffect(() => {
+    // ソート方法が変更されたら再ソート
+    sortMessages(sortType)
+  }, [sortType, messages])
+
   const loadMessages = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('recipient_id', userId)
-        .order('created_at', { ascending: false })
 
       if (error) throw error
       
-      // 送信者のアバターURLを取得
-      const messagesWithAvatars = await Promise.all(
+      // 送信者のアバターURLと所属を取得
+      const messagesWithSenderInfo = await Promise.all(
         (data || []).map(async (msg) => {
           const response = await fetch('/api/get-user-by-id', {
             method: 'POST',
@@ -52,20 +75,53 @@ export default function MessagesPage() {
             const userData = await response.json()
             return {
               ...msg,
-              sender_avatar_url: userData.user?.user_metadata?.avatar_url || null
+              sender_avatar_url: userData.user?.user_metadata?.avatar_url || null,
+              sender_department: userData.user?.user_metadata?.department || '未分類'
             }
           }
           
-          return { ...msg, sender_avatar_url: null }
+          return { 
+            ...msg, 
+            sender_avatar_url: null,
+            sender_department: '未分類'
+          }
         })
       )
       
-      setMessages(messagesWithAvatars)
+      setMessages(messagesWithSenderInfo)
     } catch (error) {
       console.error('Error loading messages:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const sortMessages = (type: SortType) => {
+    const sorted = [...messages]
+    
+    if (type === 'latest') {
+      // 最新順（作成日時の降順）
+      sorted.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+    } else if (type === 'department') {
+      // 所属順
+      sorted.sort((a, b) => {
+        const aIndex = DEPARTMENT_ORDER.indexOf(a.sender_department || '未分類')
+        const bIndex = DEPARTMENT_ORDER.indexOf(b.sender_department || '未分類')
+        const aOrder = aIndex === -1 ? 999 : aIndex
+        const bOrder = bIndex === -1 ? 999 : bIndex
+        
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder
+        }
+        
+        // 同じ所属内では最新順
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
+    }
+    
+    setSortedMessages(sorted)
   }
 
   const handleLogout = async () => {
@@ -154,16 +210,38 @@ export default function MessagesPage() {
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="flex items-center justify-between bg-white rounded-lg px-4 py-3 shadow-sm">
+            {/* ソート切り替えバー */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg px-4 py-3 shadow-sm gap-3">
               <p className="text-sm font-semibold text-gray-700">
                 {messages.length} 件のメッセージ
               </p>
-              <p className="text-xs text-gray-500">
-                最新順に表示
-              </p>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 mr-2">表示順：</span>
+                <button
+                  onClick={() => setSortType('latest')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    sortType === 'latest'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  最新順
+                </button>
+                <button
+                  onClick={() => setSortType('department')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    sortType === 'department'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  所属順
+                </button>
+              </div>
             </div>
             
-            {messages.map((msg) => (
+            {sortedMessages.map((msg) => (
               <MessageCard key={msg.id} messageData={msg} />
             ))}
           </div>
@@ -197,7 +275,14 @@ function MessageCard({ messageData }: { messageData: MessageWithSender }) {
         
         {/* 送信者情報 */}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-xl mb-1 truncate">{messageData.sender_name}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="font-bold text-xl truncate">{messageData.sender_name}</p>
+            {messageData.sender_department && (
+              <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium">
+                {messageData.sender_department}
+              </span>
+            )}
+          </div>
           <p className="text-xs opacity-80">
             {new Date(messageData.created_at).toLocaleString('ja-JP', {
               year: 'numeric',

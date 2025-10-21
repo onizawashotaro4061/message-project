@@ -18,22 +18,33 @@ export default function HomePage() {
         <div className="space-y-4 mb-12">
           <Link
             href="/send"
-            className="block px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg hover:shadow-xl"
+            className="block px-8 py-4 bg-purple-800 text-white rounded-xl font-bold text-lg hover:bg-purple-900 transition shadow-lg hover:shadow-xl"
           >
             メッセージを送る
           </Link>
           <Link
-            href="/login"
-            className="block px-8 py-4 bg-gray-800 text-white rounded-xl font-bold text-lg hover:bg-gray-900 transition shadow-lg hover:shadow-xl"
+            href="/messages"
+            className="block px-8 py-4 bg-[#B5364A] text-white rounded-xl font-bold text-lg hover:bg-[#8B2837] transition shadow-lg hover:shadow-xl"
           >
             メッセージを確認
           </Link>
-          <Link
-            href="/signup"
-            className="block px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl"
-          >
-            新規登録
-          </Link>
+          
+          {/* 新規登録とログインを横並びに */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link
+              href="/login"
+              className="block px-8 py-4 bg-[#3571B8] text-white rounded-xl font-bold text-lg hover:bg-[#2A5A93] transition shadow-lg hover:shadow-xl"
+            >
+              ログイン
+            </Link>
+            <Link
+              href="/signup"
+              className="block px-8 py-4 bg-[#D8CE48] text-white rounded-xl font-bold text-lg hover:bg-[#B8AE38] transition shadow-lg hover:shadow-xl"
+            >
+              新規登録
+            </Link>
+            
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -95,8 +95,12 @@ export default function LoginPage() {
         )}
 
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 mb-3">
-            初回ログイン時は仮パスワードを使用してください
+          <p className="text-xs text-gray-500 mb-3 text-left">
+            ※役職者向け
+            <br />メールアドレスは明治メールを使用してください。
+            <br />初回ログイン時は仮パスワードを使用してください
+            <br />役員：meiji2024
+            <br />副局長・部門長：Meidaisai141
           </p>
           <Link href="/signup" className="text-sm text-indigo-600 hover:underline font-medium">
             アカウントをお持ちでない方は新規登録
