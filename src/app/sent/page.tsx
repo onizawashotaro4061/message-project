@@ -8,6 +8,8 @@ import Link from 'next/link'
 type MessageWithRecipient = Message & {
   recipient_name?: string
   recipient_avatar_url?: string
+  sender_avatar_url?: string  // ← この行を追加
+  sender_name?: string        // ← この行も追加（念のため）
 }
 
 export default function SentMessagesPage() {
@@ -179,12 +181,12 @@ function SentMessageCard({
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-3 flex-1">
-          {/* 受信者のアイコン */}
+          {/* 送信者のアイコン（sender_avatar_url を使用） */}
           <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/50">
-            {message.recipient_avatar_url ? (
+            {message.sender_avatar_url ? (
               <img
-                src={message.recipient_avatar_url}
-                alt={message.recipient_name || '不明'}
+                src={message.sender_avatar_url}
+                alt={message.sender_name || '送信者'}
                 className="w-full h-full object-cover"
               />
             ) : (

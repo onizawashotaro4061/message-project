@@ -163,7 +163,7 @@ export default function ProfilePage() {
         data: {
           display_name: displayName,
           department: department,
-          avatar_url: null,
+          avatar_url: null, // ← ここを修正
         }
       })
 

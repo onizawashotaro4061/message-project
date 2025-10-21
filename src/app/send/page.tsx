@@ -20,6 +20,7 @@ const DEPARTMENT_ORDER = [
 
 type UserWithDept = User & {
   department?: string
+  avatar_url?: string
 }
 
 export default function SendMessagePage() {
@@ -49,6 +50,7 @@ export default function SendMessagePage() {
         email: user.email || '',
         user_metadata: user.user_metadata || {},
         department: user.user_metadata?.department || '未分類',
+        avatar_url: user.user_metadata?.avatar_url || '', // ← この行を追加
       })
     }
   }
@@ -158,6 +160,7 @@ export default function SendMessagePage() {
         recipient_id: selectedUserId,
         sender_id: currentUser.id,
         sender_name: currentUser.user_metadata.display_name,
+        sender_avatar_url: currentUser.user_metadata.avatar_url || '',
         message: message,
         card_style: selectedStyle,
       })

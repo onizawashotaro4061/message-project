@@ -21,6 +21,7 @@ export type User = {
     display_name?: string
     department?: string
     role?: string
+    avatar_url?: string  // ← この行を追加
   }
 }
 
