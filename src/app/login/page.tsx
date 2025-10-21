@@ -47,7 +47,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">💌</div>
           <h1 className="text-3xl font-bold text-gray-800">寄せ書き</h1>
         </div>
 
