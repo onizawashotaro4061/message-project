@@ -32,7 +32,7 @@ export default function HomePage() {
             href="/signup"
             className="block px-8 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl"
           >
-            ✨ 新規登録
+            新規登録
           </Link>
         </div>
 
@@ -41,14 +41,14 @@ export default function HomePage() {
             <div className="text-4xl mb-3">🎨</div>
             <h3 className="font-bold text-gray-900 mb-2">豊富なデザイン</h3>
             <p className="text-sm text-gray-600">
-              6種類のカードデザインから選べます
+              様々なカードデザインから選べます
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="text-4xl mb-3">✍️</div>
             <h3 className="font-bold text-gray-900 mb-2">1000文字</h3>
             <p className="text-sm text-gray-600">
-              たっぷり1000文字までメッセージが書けます
+              1000文字までメッセージが書けます
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6">
