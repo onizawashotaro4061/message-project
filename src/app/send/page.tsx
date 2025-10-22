@@ -23,17 +23,20 @@ type UserWithDept = User & {
   avatar_url?: string
 }
 
+type CardShape = 'rectangle' | 'square' | 'circle' | 'speech-bubble' | 'heart'
+
 export default function SendMessagePage() {
   const [users, setUsers] = useState<UserWithDept[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')
-  const [selectedRole, setSelectedRole] = useState('') // 役職フィルター追加
+  const [selectedRole, setSelectedRole] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
   const [currentUser, setCurrentUser] = useState<UserWithDept | null>(null)
   const [message, setMessage] = useState('')
-  const [selectedStyle, setSelectedStyle] = useState('enkou') // デフォルトを焔紅に変更
+  const [selectedStyle, setSelectedStyle] = useState('enkou')
+  const [selectedShape, setSelectedShape] = useState<CardShape>('square')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -50,7 +53,7 @@ export default function SendMessagePage() {
         email: user.email || '',
         user_metadata: user.user_metadata || {},
         department: user.user_metadata?.department || '未分類',
-        avatar_url: user.user_metadata?.avatar_url || '', // ← この行を追加
+        avatar_url: user.user_metadata?.avatar_url || '',
       })
     }
   }
@@ -74,7 +77,6 @@ export default function SendMessagePage() {
         department: u.user_metadata?.department || '未分類',
       }))
       
-      // 所属順にソート
       formattedUsers.sort((a: UserWithDept, b: UserWithDept) => {
         const aIndex = DEPARTMENT_ORDER.indexOf(a.department || '未分類')
         const bIndex = DEPARTMENT_ORDER.indexOf(b.department || '未分類')
@@ -94,7 +96,6 @@ export default function SendMessagePage() {
     }
   }
 
-  // 部署と役職の一覧を取得
   const departments = Array.from(
     new Set(users.map(u => u.department || '未分類'))
   ).sort((a, b) => {
@@ -105,14 +106,12 @@ export default function SendMessagePage() {
     return aOrder - bOrder
   })
 
-  // 役職一覧
   const roles = [
     { value: 'executive', label: '役員' },
     { value: 'vice_director', label: '副局長' },
     { value: 'section_chief', label: '部門長' },
   ]
 
-  // フィルタリングされたユーザーを取得
   const filteredUsers = users.filter(user => {
     const displayName = user.user_metadata?.display_name || ''
     
@@ -123,17 +122,10 @@ export default function SendMessagePage() {
     return matchesDepartment && matchesRole && matchesSearch
   })
 
-  // 現在のユーザーが使えるカードスタイルをフィルタリング
   const availableStyles = CARD_STYLES.filter(style => {
-    // 共通カード（departmentsもrolesもない）
     if (!style.departments && !style.roles) return true
-    
-    // 所属専用カード
     if (style.departments && style.departments.includes(currentUser?.department || '')) return true
-    
-    // 役職専用カード
     if (style.roles && style.roles.includes(currentUser?.user_metadata?.role || '')) return true
-    
     return false
   })
 
@@ -163,15 +155,17 @@ export default function SendMessagePage() {
         sender_avatar_url: currentUser.user_metadata.avatar_url || '',
         message: message,
         card_style: selectedStyle,
+        card_shape: selectedShape,
       })
 
       if (error) throw error
       setSubmitted(true)
       setMessage('')
-      setSelectedStyle('enkou') // デフォルトを焔紅に変更
+      setSelectedStyle('enkou')
+      setSelectedShape('square')
       setSelectedUserId('')
       setSelectedDepartment('')
-      setSelectedRole('') // 役職フィルターもリセット
+      setSelectedRole('')
       setSearchQuery('')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました'
@@ -220,7 +214,7 @@ export default function SendMessagePage() {
             href="/messages"
             className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-600 transition font-medium"
           >
-            受信メッセージ
+            確認
           </Link>
         </div>
 
@@ -228,7 +222,7 @@ export default function SendMessagePage() {
           {loading ? (
             <div className="text-center text-gray-600">読み込み中...</div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
               {/* 所属で絞り込み */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -331,6 +325,77 @@ export default function SendMessagePage() {
                 </p>
               </div>
 
+              {/* カードの形選択 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  カードの形を選択 <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShape('square')}
+                    className={`p-3 rounded-lg border-2 transition ${
+                      selectedShape === 'square'
+                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded mb-2"></div>
+                    <p className="text-sm font-medium text-gray-700">正方形</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShape('circle')}
+                    className={`p-3 rounded-lg border-2 transition ${
+                      selectedShape === 'circle'
+                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-full mb-2"></div>
+                    <p className="text-sm font-medium text-gray-700">丸型</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShape('speech-bubble')}
+                    className={`p-3 rounded-lg border-2 transition ${
+                      selectedShape === 'speech-bubble'
+                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl mb-2 relative">
+                      <div className="absolute -bottom-1 left-4 w-3 h-3 bg-gray-300 transform rotate-45"></div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">吹き出し</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShape('heart')}
+                    className={`p-3 rounded-lg border-2 transition ${
+                      selectedShape === 'heart'
+                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="w-full aspect-square flex items-center justify-center mb-2">
+                      <svg viewBox="0 0 100 100" className="w-16 h-16">
+                        <path
+                          d="M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z"
+                          className="fill-gray-300"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">ハート</p>
+                  </button>
+                </div>
+                {selectedShape === 'heart' && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    💝 ハート型は文字数が多い場合、省略表示されます
+                  </p>
+                )}
+              </div>
+
               {/* カードデザイン選択 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -379,17 +444,18 @@ export default function SendMessagePage() {
                   }
                   message={message}
                   cardStyle={selectedStyle}
+                  cardShape={selectedShape}
                 />
               </div>
 
               <button
-                type="submit"
+                onClick={handleSubmit}
                 disabled={submitting || !message || !selectedUserId}
                 className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-lg"
               >
                 {submitting ? '送信中...' : 'メッセージを送信'}
               </button>
-            </form>
+            </div>
           )}
         </div>
       </div>
@@ -402,26 +468,68 @@ function MessageCardPreview({
   recipientName,
   message,
   cardStyle,
+  cardShape,
 }: {
   senderName: string
   recipientName: string
   message: string
   cardStyle: string
+  cardShape: CardShape
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
 
+  const getShapeClasses = () => {
+    switch (cardShape) {
+      case 'square':
+        return 'aspect-square'
+      case 'circle':
+        return 'aspect-square rounded-full'
+      case 'speech-bubble':
+        return 'rounded-3xl relative after:content-[""] after:absolute after:-bottom-3 after:left-8 after:w-6 after:h-6 after:bg-gradient-to-br after:' + style.bgGradient.replace('from-', 'from-') + ' after:transform after:rotate-45'
+      case 'heart':
+        return 'aspect-square'
+      default:
+        return ''
+    }
+  }
+
+  if (cardShape === 'heart') {
+    return (
+      <div className="flex justify-center">
+        <div className="relative w-64 h-64">
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <defs>
+              <clipPath id="heartClip">
+                <path d="M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z" />
+              </clipPath>
+            </defs>
+            <rect width="100" height="100" className={`fill-current ${style.bgGradient.includes('from-') ? '' : 'bg-gradient-to-br ' + style.bgGradient}`} clipPath="url(#heartClip)" />
+          </svg>
+          <div className={`absolute inset-0 p-8 flex flex-col justify-center items-center text-center ${style.textColor}`} style={{ clipPath: "path('M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z')" }}>
+            <p className="font-bold text-sm mb-2">{senderName}</p>
+            <p className="text-xs whitespace-pre-wrap line-clamp-5 leading-tight">
+              {message || 'メッセージ...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-xl p-6 ${style.textColor}`}
+      className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} p-6 ${style.textColor} ${getShapeClasses()} flex flex-col overflow-hidden`}
     >
-      <div className="mb-4">
-        <p className="font-semibold text-lg">{senderName || 'お名前'}</p>
+      <div className="mb-3">
+        <p className="font-semibold text-base">{senderName || 'お名前'}</p>
         <p className="text-xs opacity-70">→ {recipientName}</p>
       </div>
 
-      <p className="whitespace-pre-wrap leading-relaxed text-sm">
-        {message || 'メッセージがここに表示されます...'}
-      </p>
+      <div className="flex-1 flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-3">
+        <p className="whitespace-pre-wrap leading-relaxed text-sm">
+          {message || 'メッセージがここに表示されます...'}
+        </p>
+      </div>
     </div>
   )
 }

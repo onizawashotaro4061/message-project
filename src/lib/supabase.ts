@@ -40,23 +40,23 @@ export const CARD_STYLES: CardStyle[] = [
   {
     id: 'enkou',
     name: '焔紅',
-    bgGradient: 'bg-[#B5364A]',  // bg-gradient-to-brは無視される
-  borderColor: 'border-[#8B2837]',
+    bgGradient: 'bg-[#B5364A]',
+    borderColor: 'border-[#B5364A]',
     textColor: 'text-white',
   },
   {
     id: 'souen',
     name: '蒼炎',
     bgGradient: 'bg-[#3571B8]',
-  borderColor: 'border-[#2A5A93]',
+  borderColor: 'border-[#3571B8]',
     textColor: 'text-white',
   },
   {
     id: 'kikou',
     name: '軌光',
     bgGradient: 'bg-[#D8CE48]',
-  borderColor: 'border-[#B8AE38]',
-    textColor: 'text-white',
+  borderColor: 'border-[#D8CE48]',
+    textColor: 'text-black',
   },
   // 所属専用カード
   {
