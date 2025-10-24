@@ -247,32 +247,16 @@ function MessageCard({
   const style = CARD_STYLES.find((s) => s.id === messageData.card_style) || CARD_STYLES[0]
   const shape = messageData.card_shape || 'square'
 
-  const getShapeClasses = () => {
-    switch (shape) {
-      case 'square':
-        return 'rounded-2xl'
-      case 'circle':
-        return 'rounded-3xl px-12 py-8 w-full min-h-48'
-      case 'speech-bubble':
-        return 'rounded-3xl relative'
-      case 'octagon':
-        return 'p-5 md:p-6'
-      default:
-        return 'rounded-2xl'
-    }
-  }
 
-  const octagonClipPath = 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)'
   if (style.hasBackgroundImage) {
   return (
-    <div 
-      className={`relative ${getShapeClasses()} shadow-lg hover:shadow-2xl transition-all duration-300`}
+    <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
       style={{
-        backgroundImage: `url(${style.backgroundImage})`,
-        backgroundSize: style.id === 'letter-paper' ? 'cover' : 'contain',
-        backgroundPosition: style.id === 'letter-paper' ? 'center' : 'top center',
-        backgroundRepeat: style.id === 'letter-paper' ? 'no-repeat' : 'repeat-y'
-      }}
+  backgroundImage: `url(${style.backgroundImage})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+}}
     >
       {/* 半透明オーバーレイ */}
       <div className={`absolute inset-0 ${style.bgGradient} opacity-70`}></div>
@@ -319,26 +303,8 @@ function MessageCard({
   )
 }
   return (
-    <div
-      className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} ${getShapeClasses()}`}
-      style={{
-        // 円形の場合のスタイル
-        ...(shape === 'circle' ? { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'} : {}),
-        // ★ 八角形の場合のclip-pathスタイル
-        ...(shape === 'octagon' ? { clipPath: octagonClipPath } : {}) 
-      }}
-    >
-      {shape === 'speech-bubble' && (
-      <div 
-        className={`absolute -bottom-3 left-6 w-5 h-5 border-l-2 border-b-2 ${style.borderColor} transform rotate-315`}
-        style={{ 
-            background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
-            backgroundImage: style.bgGradient.includes('bg-[')
-            ? `linear-gradient(to bottom right, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]}, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]})`
-            : undefined
-        }}
-      />
-      )}
+    <div className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} rounded-2xl shadow-lg hover:shadow-2xl`}>
+      
       <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
         {/* アイコン画像 */}
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -374,7 +340,7 @@ function MessageCard({
         </div>
       </div>
 
-      <div className={`rounded-xl px-5 pb-5 ${shape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
+      <div className="rounded-xl px-5 pb-5">
         <p className="whitespace-pre-wrap leading-relaxed text-sm">
           {messageData.message}
         </p>

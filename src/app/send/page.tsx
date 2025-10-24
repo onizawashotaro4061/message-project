@@ -36,7 +36,6 @@ export default function SendMessagePage() {
   const [currentUser, setCurrentUser] = useState<UserWithDept | null>(null)
   const [message, setMessage] = useState('')
   const [selectedStyle, setSelectedStyle] = useState('enkou')
-  const [selectedShape, setSelectedShape] = useState<CardShape>('square')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -156,14 +155,13 @@ export default function SendMessagePage() {
         sender_avatar_url: currentUser.user_metadata.avatar_url || '',
         message: message,
         card_style: selectedStyle,
-        card_shape: selectedShape,
+        card_shape: 'square',  // 固定
       })
 
       if (error) throw error
       setSubmitted(true)
       setMessage('')
       setSelectedStyle('enkou')
-      setSelectedShape('square')
       setSelectedUserId('')
       setSelectedDepartment('')
       setSelectedRole('')
@@ -314,69 +312,6 @@ export default function SendMessagePage() {
                 </p>
               </div>
 
-              {/* カードの形選択 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  カードの形を選択 <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShape('square')}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedShape === 'square'
-                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div className="w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded mb-2"></div>
-                    <p className="text-sm font-medium text-gray-700">正方形</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShape('circle')}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedShape === 'circle'
-                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full mb-2"></div>
-                    <p className="text-sm font-medium text-gray-700">丸型</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShape('speech-bubble')}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedShape === 'speech-bubble'
-                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl mb-2 relative">
-                      <div className="absolute -bottom-1 left-4 w-3 h-3 bg-gray-300 transform rotate-45"></div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-700">吹き出し</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShape('octagon')}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedShape === 'octagon'
-                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div
-        className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300"
-        style={{ clipPath: 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)' }}
-    ></div>
-                    <p className="text-sm font-medium text-gray-700">八角形</p>
-                  </button>
-                  
-                </div>
-              </div>
-
               {/* カードデザイン選択 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -435,7 +370,7 @@ export default function SendMessagePage() {
                   }
                   message={message}
                   cardStyle={selectedStyle}
-                  cardShape={selectedShape}
+                  cardShape="square"  // 固定
                   senderAvatarUrl={currentUser?.avatar_url}
                   senderDepartment={currentUser?.department}
                 />
@@ -475,36 +410,20 @@ function MessageCardPreview({
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
 
-  const getShapeClasses = () => {
-    switch (cardShape) {
-      case 'square':
-        return 'rounded-2xl'
-      case 'circle':
-        return 'rounded-3xl px-12 py-8 w-full min-h-48'
-      case 'speech-bubble':
-        return 'rounded-3xl relative'
-      case 'octagon':
-        return 'p-5 md:p-6'
-      default:
-        return 'rounded-2xl'
-    }
-  }
 
-  const octagonClipPath = 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)'
   // グラデーションかどうかを判定
   const hasGradient = style.bgGradient.includes('from-')
 
   if (style.hasBackgroundImage) {
   return (
     <div className="flex justify-center">
-      <div 
-        className={`relative ${getShapeClasses()} shadow-lg w-full max-w-sm`}
+      <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-sm"
         style={{
-          backgroundImage: `url(${style.backgroundImage})`,
-          backgroundSize: style.id === 'letter-paper' ? 'cover' : 'contain',
-          backgroundPosition: style.id === 'letter-paper' ? 'center' : 'top center',
-          backgroundRepeat: style.id === 'letter-paper' ? 'no-repeat' : 'repeat-y'
-        }}
+  backgroundImage: `url(${style.backgroundImage})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+}}
       >
         {/* 半透明オーバーレイ */}
         {/* <div className={`absolute inset-0 ${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} opacity-70`}></div> */}
@@ -538,7 +457,7 @@ function MessageCardPreview({
                 </p>
               </div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+            <div className="bg-white/20 rounded-xl p-4 border border-white/30">
               <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
                 {message || 'メッセージがここに表示されます...'}
               </p>
@@ -552,18 +471,12 @@ function MessageCardPreview({
   return (
     <div className="flex justify-center">
       <div
-        className={`${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} border-2 ${style.borderColor} ${style.textColor} ${getShapeClasses()} w-full max-w-sm shadow-lg`}
-        style={{
-        // 円形の場合のスタイル
-        ...(cardShape === 'circle' ? { display: 'flex', flexDirection: 'column'} : {}),
-        // ★ 八角形の場合のclip-pathスタイル
-        ...(cardShape === 'octagon' ? { clipPath: octagonClipPath } : {})
-      }}
-      >
-        {cardShape === 'speech-bubble' && (
-          <div 
+        className={`${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} border-2 ${style.borderColor} ${style.textColor} w-full max-w-sm rounded-3xl shadow-lg hover:shadow-2xl`}      >
+        {cardShape === 'speech-bubble' && ( 
+
+          <div
             className={`absolute -bottom-3 left-6 w-5 h-5 border-l-2 border-b-2 ${style.borderColor} transform rotate-315`}
-            style={{ 
+            style={{
               background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
               backgroundImage: style.bgGradient.includes('bg-[')
                 ? `linear-gradient(to bottom right, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]}, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]})`
