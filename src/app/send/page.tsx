@@ -23,7 +23,7 @@ type UserWithDept = User & {
   avatar_url?: string
 }
 
-type CardShape = 'square' | 'circle' | 'speech-bubble'
+type CardShape = 'square' | 'circle' | 'speech-bubble' | 'octagon'
 
 export default function SendMessagePage() {
   const [users, setUsers] = useState<UserWithDept[]>([])
@@ -213,98 +213,86 @@ export default function SendMessagePage() {
           <h1 className="text-3xl font-bold text-gray-800">メッセージを送る</h1>
           <Link
             href="/messages"
-            className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-600 transition font-medium"
+            className="text-indigo-600 hover:text-indigo-800 font-medium"
           >
-            確認
+            ← 戻る
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
           {loading ? (
-            <div className="text-center text-gray-600">読み込み中...</div>
+            <div className="text-center py-8 text-gray-600">読み込み中...</div>
           ) : (
             <div className="space-y-6">
-              {/* 所属で絞り込み */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  所属で絞り込み
-                </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => {
-                    setSelectedDepartment(e.target.value)
-                    setSelectedUserId('')
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
-                >
-                  <option value="">すべて</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 役職で絞り込み */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  役職で絞り込み
-                </label>
-                <select
-                  value={selectedRole}
-                  onChange={(e) => {
-                    setSelectedRole(e.target.value)
-                    setSelectedUserId('')
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
-                >
-                  <option value="">すべて</option>
-                  {roles.map(role => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 名前で検索 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  名前で検索
-                </label>
-                <input
-                  type="text"
-                  placeholder="例: 山田"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    setSelectedUserId('')
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
-                />
-              </div>
-
               {/* 送信先選択 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送信先を選択 <span className="text-red-500">*</span>
+                  送信先 <span className="text-red-500">*</span>
                 </label>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                
+                {/* フィルター */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                   <select
-                    value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
-                    size={Math.min(filteredUsers.length || 1, 8)}
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
                   >
-                    <option value="">-- 選択してください --</option>
-                    {filteredUsers.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.user_metadata?.display_name || user.email}（{user.department}）
-                      </option>
+                    <option value="">すべての所属</option>
+                    {departments.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>
+
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                  >
+                    <option value="">すべての役職</option>
+                    {roles.map(role => (
+                      <option key={role.value} value={role.value}>{role.label}</option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="名前で検索..."
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                  />
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  {filteredUsers.length} 件のユーザーが見つかりました
-                </p>
+
+                {/* ユーザーリスト */}
+                <div className="border border-gray-300 rounded-lg max-h-60 overflow-y-auto">
+                  {filteredUsers.length === 0 ? (
+                    <p className="p-4 text-gray-500 text-center">該当するユーザーがいません</p>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <label
+                        key={user.id}
+                        className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                          selectedUserId === user.id ? 'bg-indigo-50' : ''
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="recipient"
+                          value={user.id}
+                          checked={selectedUserId === user.id}
+                          onChange={(e) => setSelectedUserId(e.target.value)}
+                          className="mr-3"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {user.user_metadata?.display_name || user.email}
+                          </p>
+                          <p className="text-sm text-gray-500">{user.department}</p>
+                        </div>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* メッセージ */}
@@ -370,6 +358,21 @@ export default function SendMessagePage() {
                     </div>
                     <p className="text-sm font-medium text-gray-700">吹き出し</p>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedShape('octagon')}
+                    className={`p-3 rounded-lg border-2 transition ${
+                      selectedShape === 'octagon'
+                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div
+        className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300"
+        style={{ clipPath: 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)' }}
+    ></div>
+                    <p className="text-sm font-medium text-gray-700">八角形</p>
+                  </button>
                   
                 </div>
               </div>
@@ -391,9 +394,19 @@ export default function SendMessagePage() {
                           : 'border-gray-200 hover:border-indigo-400'
                       }`}
                     >
-                      <div
-                        className={`h-20 rounded bg-gradient-to-br ${style.bgGradient} mb-2 border ${style.borderColor}`}
-                      />
+                      {style.hasBackgroundImage ? (
+  <div className="relative h-20 rounded mb-2 border overflow-hidden">
+    <img 
+      src={style.backgroundImage} 
+      alt={style.name}
+      className="absolute inset-0 w-full h-full object-cover"
+    />
+  </div>
+) : (
+  <div
+    className={`h-20 rounded bg-gradient-to-br ${style.bgGradient} mb-2 border ${style.borderColor}`}
+  />
+)}
                       <p className="text-sm font-medium text-gray-700">{style.name}</p>
                     </button>
                   ))}
@@ -423,6 +436,8 @@ export default function SendMessagePage() {
                   message={message}
                   cardStyle={selectedStyle}
                   cardShape={selectedShape}
+                  senderAvatarUrl={currentUser?.avatar_url}
+                  senderDepartment={currentUser?.department}
                 />
               </div>
 
@@ -447,53 +462,83 @@ function MessageCardPreview({
   message,
   cardStyle,
   cardShape,
+  senderAvatarUrl,
+  senderDepartment,
 }: {
   senderName: string
   recipientName: string
   message: string
   cardStyle: string
   cardShape: CardShape
+  senderAvatarUrl?: string
+  senderDepartment?: string
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
-
-  console.log('Selected card style:', cardStyle)
-  console.log('Style object:', style)
-  console.log('Has background image:', style.hasBackgroundImage)
-  console.log('Background image URL:', style.backgroundImage)
 
   const getShapeClasses = () => {
     switch (cardShape) {
       case 'square':
-        return 'aspect-square'
+        return 'rounded-2xl'
       case 'circle':
-        return 'w-full min-h-48 rounded-full'
+        return 'rounded-full px-12 py-8 w-full min-h-48'
       case 'speech-bubble':
-        return 'rounded-3xl relative after:content-[""] after:absolute after:-bottom-3 after:left-8 after:w-6 after:h-6 after:bg-gradient-to-br after:' + style.bgGradient.replace('from-', 'from-') + ' after:transform after:rotate-45'
+        return 'rounded-3xl relative'
+      case 'octagon':
+        return 'p-5 md:p-6'
       default:
-        return ''
+        return 'rounded-2xl'
     }
   }
 
+  const octagonClipPath = 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)'
+  // グラデーションかどうかを判定
+  const hasGradient = style.bgGradient.includes('from-')
+
   if (style.hasBackgroundImage) {
-    console.log('背景画像モードでレンダリング中')
-    return (
-      <div className="flex justify-center">
-        <div className={`relative w-full max-w-sm ${getShapeClasses()} overflow-hidden ${cardShape === 'circle' ? 'rounded-full' : 'rounded-2xl'}`}>
-          {/* 背景画像 */}
-          <img 
-            src={style.backgroundImage} 
-            alt={style.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* 半透明オーバーレイ */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${style.bgGradient} opacity-70`}></div>
-          {/* コンテンツ */}
-          <div className={`relative h-full p-6 flex flex-col ${style.textColor}`}>
-            <div className="mb-3">
-              <p className="font-semibold text-base drop-shadow-lg">{senderName || 'お名前'}</p>
-              <p className="text-xs opacity-90 drop-shadow">→ {recipientName}</p>
+  return (
+    <div className="flex justify-center">
+      <div 
+        className={`relative ${getShapeClasses()} shadow-lg w-full max-w-sm`}
+        style={{
+          backgroundImage: `url(${style.backgroundImage})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'repeat-y'
+        }}
+      >
+        {/* 半透明オーバーレイ */}
+        <div className={`absolute inset-0 ${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} opacity-70`}></div>
+        {/* コンテンツ */}
+        <div className={`relative p-5 ${style.textColor}`}>
+
+            
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
+                {senderAvatarUrl ? (
+                  <img
+                    src={senderAvatarUrl}
+                    alt={senderName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-2xl">👤</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <p className="font-bold text-base drop-shadow-lg">{senderName || 'あなた'}</p>
+                  {senderDepartment && (
+                    <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                      {senderDepartment}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs opacity-90 drop-shadow">
+                  プレビュー
+                </p>
+              </div>
             </div>
-            <div className="flex-1 flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
               <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
                 {message || 'メッセージがここに表示されます...'}
               </p>
@@ -505,19 +550,65 @@ function MessageCardPreview({
   }
 
   return (
-    <div
-      className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} p-6 ${style.textColor} ${getShapeClasses()} flex flex-col overflow-hidden`}
-    >
-      <div className="mb-3">
-        <p className="font-semibold text-base">{senderName || 'お名前'}</p>
-        <p className="text-xs opacity-70">→ {recipientName}</p>
-      </div>
+    <div className="flex justify-center">
+      <div
+        className={`${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} border-2 ${style.borderColor} ${style.textColor} ${getShapeClasses()} w-full max-w-sm shadow-lg`}
+        style={{
+        // 円形の場合のスタイル
+        ...(cardShape === 'circle' ? { display: 'flex', flexDirection: 'column'} : {}),
+        // ★ 八角形の場合のclip-pathスタイル
+        ...(cardShape === 'octagon' ? { clipPath: octagonClipPath } : {})
+      }}
+      >
+        {cardShape === 'speech-bubble' && (
+          <div 
+            className={`absolute -bottom-3 left-6 w-5 h-5 border-l-2 border-b-2 ${style.borderColor} transform rotate-315`}
+            style={{ 
+              background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
+              backgroundImage: style.bgGradient.includes('bg-[')
+                ? `linear-gradient(to bottom right, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]}, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]})`
+                : undefined
+            }}
+          />
+        )}
+        <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
+          {/* アイコン画像 */}
+          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {senderAvatarUrl ? (
+              <img
+                src={senderAvatarUrl}
+                alt={senderName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-2xl">👤</div>
+            )}
+          </div>
+          
+          {/* 送信者情報 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <p className="font-bold text-base">{senderName || 'あなた'}</p>
+              {senderDepartment && (
+                <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                  {senderDepartment}
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-80">
+              プレビュー
+            </p>
+          </div>
+        </div>
 
-      <div className="flex-1 flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-3">
-        <p className="whitespace-pre-wrap leading-relaxed text-sm">
-          {message || 'メッセージがここに表示されます...'}
-        </p>
+        <div className={`rounded-xl px-5 pb-5 ${cardShape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
+          <p className="whitespace-pre-wrap leading-relaxed text-sm">
+            {message || 'メッセージがここに表示されます...'}
+          </p>
+        </div>
       </div>
     </div>
   )
 }
+
+

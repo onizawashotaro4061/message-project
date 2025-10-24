@@ -8,7 +8,7 @@ import Link from 'next/link'
 type MessageWithSender = Message & {
   sender_avatar_url?: string
   sender_department?: string
-  card_shape?: 'rectangle' | 'square' | 'circle' | 'speech-bubble'
+  card_shape?: 'rectangle' | 'square' | 'circle' | 'speech-bubble' | 'octagon'
 }
 
 type SortType = 'latest'
@@ -122,7 +122,7 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* ヘッダー */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6 no-print">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
               <Link
@@ -255,22 +255,27 @@ function MessageCard({
         return 'rounded-full px-12 py-8 w-full min-h-48'
       case 'speech-bubble':
         return 'rounded-3xl relative'
+      case 'octagon':
+        return 'p-5 md:p-6'
       default:
         return 'rounded-2xl'
     }
   }
 
+  const octagonClipPath = 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
   if (style.hasBackgroundImage) {
   return (
-    <div className={`relative ${getShapeClasses()} overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300`}>
-      {/* 背景画像 */}
-      <img 
-        src={style.backgroundImage} 
-        alt={style.name}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+    <div 
+      className={`relative ${getShapeClasses()} shadow-lg hover:shadow-2xl transition-all duration-300`}
+      style={{
+        backgroundImage: `url(${style.backgroundImage})`,
+        backgroundSize: 'contain',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'repeat-y'
+      }}
+    >
       {/* 半透明オーバーレイ */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${style.bgGradient} opacity-70`}></div>
+      <div className={`absolute inset-0 ${style.bgGradient} opacity-70`}></div>
       {/* コンテンツ */}
       <div className={`relative p-5 ${style.textColor}`}>
         <div className="flex items-start gap-3 mb-3">
@@ -316,7 +321,12 @@ function MessageCard({
   return (
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} ${getShapeClasses()}`}
-      style={shape === 'circle' ? { display: 'flex', flexDirection: 'column' } : {}}
+      style={{
+        // 円形の場合のスタイル
+        ...(shape === 'circle' ? { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'} : {}),
+        // ★ 八角形の場合のclip-pathスタイル
+        ...(shape === 'octagon' ? { clipPath: octagonClipPath } : {}) 
+      }}
     >
       {shape === 'speech-bubble' && (
       <div 
@@ -329,7 +339,7 @@ function MessageCard({
         }}
       />
       )}
-      <div className="flex gap-3 mb-3 items-center justify-center">
+      <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
         {/* アイコン画像 */}
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
           {messageData.sender_avatar_url ? (
@@ -364,7 +374,7 @@ function MessageCard({
         </div>
       </div>
 
-      <div className={`rounded-xl p-5 ${shape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
+      <div className={`rounded-xl px-5 pb-5 ${shape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
         <p className="whitespace-pre-wrap leading-relaxed text-sm">
           {messageData.message}
         </p>

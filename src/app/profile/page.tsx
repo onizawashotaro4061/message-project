@@ -248,7 +248,8 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    推奨: 正方形の画像（自動で200KB以下に圧縮）
+                    推奨: ご自身の顔写真
+                    <br />
                   </p>
                 </div>
               </div>
