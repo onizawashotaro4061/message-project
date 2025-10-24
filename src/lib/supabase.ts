@@ -33,6 +33,8 @@ export type CardStyle = {
   textColor: string
   departments?: string[]
   roles?: string[]
+  backgroundImage?: string  // 背景画像URL（オプション）
+  hasBackgroundImage?: boolean  // 背景画像があるかどうか
 }
 
 export const CARD_STYLES: CardStyle[] = [
@@ -153,7 +155,7 @@ export const CARD_STYLES: CardStyle[] = [
     id: 'vice_director',
     name: '副局長専用',
     bgGradient: 'from-slate-300 via-gray-300 to-slate-400',
-    borderColor: 'border-gray-600',
+    borderColor: 'border-slate-300',
     textColor: 'text-gray-900',
     // roles: ['vice_director'],
   },
@@ -161,8 +163,35 @@ export const CARD_STYLES: CardStyle[] = [
     id: 'section_chief',
     name: '部門長専用',
     bgGradient: 'from-cyan-400 via-teal-400 to-cyan-500',
-    borderColor: 'border-cyan-600',
+    borderColor: 'border-cyan-400',
     textColor: 'text-gray-900',
     // roles: ['section_chief'],
+  },
+  {
+    id: 'bg-sakura',
+    name: '桜（背景画像）',
+    bgGradient: 'from-pink-10 to-pink-10',
+    borderColor: 'border-pink-300',
+    textColor: 'text-gray-800',
+    backgroundImage: '/images/keitatsu.JPG',
+    hasBackgroundImage: true,
+  },
+  {
+    id: 'bg-sky',
+    name: '青空（背景画像）',
+    bgGradient: 'from-blue-100 to-blue-200',
+    borderColor: 'border-blue-300',
+    textColor: 'text-gray-800',
+    backgroundImage: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800',
+    hasBackgroundImage: true,
+  },
+  {
+    id: 'bg-sunset',
+    name: '夕焼け（背景画像）',
+    bgGradient: 'from-orange-100 to-orange-200',
+    borderColor: 'border-orange-300',
+    textColor: 'text-gray-800',
+    backgroundImage: 'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800',
+    hasBackgroundImage: true,
   },
 ]

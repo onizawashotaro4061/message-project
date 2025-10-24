@@ -23,7 +23,7 @@ type UserWithDept = User & {
   avatar_url?: string
 }
 
-type CardShape = 'rectangle' | 'square' | 'circle' | 'speech-bubble' | 'heart'
+type CardShape = 'square' | 'circle' | 'speech-bubble'
 
 export default function SendMessagePage() {
   const [users, setUsers] = useState<UserWithDept[]>([])
@@ -84,7 +84,8 @@ export default function SendMessagePage() {
         const bOrder = bIndex === -1 ? 999 : bIndex
         
         if (aOrder !== bOrder) return aOrder - bOrder
-        return (a.user_metadata?.display_name || '').localeCompare(b.user_metadata?.display_name || '')
+
+  return (a.user_metadata?.display_name || '').localeCompare(b.user_metadata?.display_name || '')
       })
       
       setUsers(formattedUsers)
@@ -330,7 +331,7 @@ export default function SendMessagePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   カードの形を選択 <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedShape('square')}
@@ -352,7 +353,7 @@ export default function SendMessagePage() {
                         : 'border-gray-200 hover:border-indigo-400'
                     }`}
                   >
-                    <div className="w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 rounded-full mb-2"></div>
+                    <div className="w-full h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full mb-2"></div>
                     <p className="text-sm font-medium text-gray-700">丸型</p>
                   </button>
                   <button
@@ -369,31 +370,8 @@ export default function SendMessagePage() {
                     </div>
                     <p className="text-sm font-medium text-gray-700">吹き出し</p>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedShape('heart')}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedShape === 'heart'
-                        ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div className="w-full aspect-square flex items-center justify-center mb-2">
-                      <svg viewBox="0 0 100 100" className="w-16 h-16">
-                        <path
-                          d="M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z"
-                          className="fill-gray-300"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-sm font-medium text-gray-700">ハート</p>
-                  </button>
+                  
                 </div>
-                {selectedShape === 'heart' && (
-                  <p className="text-xs text-amber-600 mt-2">
-                    💝 ハート型は文字数が多い場合、省略表示されます
-                  </p>
-                )}
               </div>
 
               {/* カードデザイン選択 */}
@@ -478,38 +456,48 @@ function MessageCardPreview({
 }) {
   const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
 
+  console.log('Selected card style:', cardStyle)
+  console.log('Style object:', style)
+  console.log('Has background image:', style.hasBackgroundImage)
+  console.log('Background image URL:', style.backgroundImage)
+
   const getShapeClasses = () => {
     switch (cardShape) {
       case 'square':
         return 'aspect-square'
       case 'circle':
-        return 'aspect-square rounded-full'
+        return 'w-full min-h-48 rounded-full'
       case 'speech-bubble':
         return 'rounded-3xl relative after:content-[""] after:absolute after:-bottom-3 after:left-8 after:w-6 after:h-6 after:bg-gradient-to-br after:' + style.bgGradient.replace('from-', 'from-') + ' after:transform after:rotate-45'
-      case 'heart':
-        return 'aspect-square'
       default:
         return ''
     }
   }
 
-  if (cardShape === 'heart') {
+  if (style.hasBackgroundImage) {
+    console.log('背景画像モードでレンダリング中')
     return (
       <div className="flex justify-center">
-        <div className="relative w-64 h-64">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <defs>
-              <clipPath id="heartClip">
-                <path d="M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z" />
-              </clipPath>
-            </defs>
-            <rect width="100" height="100" className={`fill-current ${style.bgGradient.includes('from-') ? '' : 'bg-gradient-to-br ' + style.bgGradient}`} clipPath="url(#heartClip)" />
-          </svg>
-          <div className={`absolute inset-0 p-8 flex flex-col justify-center items-center text-center ${style.textColor}`} style={{ clipPath: "path('M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z')" }}>
-            <p className="font-bold text-sm mb-2">{senderName}</p>
-            <p className="text-xs whitespace-pre-wrap line-clamp-5 leading-tight">
-              {message || 'メッセージ...'}
-            </p>
+        <div className={`relative w-full max-w-sm ${getShapeClasses()} overflow-hidden ${cardShape === 'circle' ? 'rounded-full' : 'rounded-2xl'}`}>
+          {/* 背景画像 */}
+          <img 
+            src={style.backgroundImage} 
+            alt={style.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* 半透明オーバーレイ */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${style.bgGradient} opacity-70`}></div>
+          {/* コンテンツ */}
+          <div className={`relative h-full p-6 flex flex-col ${style.textColor}`}>
+            <div className="mb-3">
+              <p className="font-semibold text-base drop-shadow-lg">{senderName || 'お名前'}</p>
+              <p className="text-xs opacity-90 drop-shadow">→ {recipientName}</p>
+            </div>
+            <div className="flex-1 flex items-center bg-white/20 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+              <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
+                {message || 'メッセージがここに表示されます...'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

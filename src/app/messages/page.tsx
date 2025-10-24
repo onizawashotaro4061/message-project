@@ -8,7 +8,7 @@ import Link from 'next/link'
 type MessageWithSender = Message & {
   sender_avatar_url?: string
   sender_department?: string
-  card_shape?: 'rectangle' | 'square' | 'circle' | 'speech-bubble' | 'heart'
+  card_shape?: 'rectangle' | 'square' | 'circle' | 'speech-bubble'
 }
 
 type SortType = 'latest'
@@ -252,49 +252,29 @@ function MessageCard({
       case 'square':
         return 'rounded-2xl'
       case 'circle':
-        return 'rounded-full p-6 min-h-[280px] max-w-[280px] mx-auto'
+        return 'rounded-full px-12 py-8 w-full min-h-48'
       case 'speech-bubble':
         return 'rounded-3xl relative'
-      case 'heart':
-        return 'aspect-square cursor-pointer hover:scale-105 transition-transform'
       default:
         return 'rounded-2xl'
     }
   }
 
-  if (shape === 'heart') {
-    // カラーコードを取得
-    const getColorFromGradient = (gradient: string) => {
-      const match = gradient.match(/\[(#[A-Fa-f0-9]{6})\]/)
-      return match ? match[1] : '#ec4899'
-    }
-    
-    const fromColor = style.bgGradient.includes('from-[') 
-      ? getColorFromGradient(style.bgGradient.split('from-')[1])
-      : '#ec4899'
-    const toColor = style.bgGradient.includes('to-[')
-      ? getColorFromGradient(style.bgGradient.split('to-')[1])
-      : '#ef4444'
-
-    return (
-      <div 
-        className="relative w-full aspect-square max-w-[280px] mx-auto cursor-pointer hover:scale-105 transition-transform"
-        onClick={onToggleExpand}
-      >
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
-          <defs>
-            <linearGradient id={`gradient-${messageData.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={fromColor} />
-              <stop offset="100%" stopColor={toColor} />
-            </linearGradient>
-          </defs>
-          <path
-            d="M50,90 C50,90 10,60 10,35 C10,20 20,10 32.5,10 C40,10 47,15 50,22 C53,15 60,10 67.5,10 C80,10 90,20 90,35 C90,60 50,90 50,90 Z"
-            fill={`url(#gradient-${messageData.id})`}
-          />
-        </svg>
-        <div className={`absolute inset-0 flex flex-col justify-center items-center text-center px-6 ${style.textColor}`}>
-          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden mb-2 border-2">
+  if (style.hasBackgroundImage) {
+  return (
+    <div className={`relative ${getShapeClasses()} overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300`}>
+      {/* 背景画像 */}
+      <img 
+        src={style.backgroundImage} 
+        alt={style.name}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* 半透明オーバーレイ */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${style.bgGradient} opacity-70`}></div>
+      {/* コンテンツ */}
+      <div className={`relative p-5 ${style.textColor}`}>
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
             {messageData.sender_avatar_url ? (
               <img
                 src={messageData.sender_avatar_url}
@@ -302,41 +282,54 @@ function MessageCard({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="text-xl">👤</div>
+              <div className="text-2xl">👤</div>
             )}
           </div>
-          <p className="font-bold text-sm mb-1">{messageData.sender_name}</p>
-          {messageData.sender_department && (
-            <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium mb-2">
-              {messageData.sender_department}
-            </span>
-          )}
-          <p className="text-xs whitespace-pre-wrap line-clamp-3 leading-snug px-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <p className="font-bold text-base drop-shadow-lg">{messageData.sender_name}</p>
+              {messageData.sender_department && (
+                <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                  {messageData.sender_department}
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-90 drop-shadow">
+              {new Date(messageData.created_at).toLocaleString('ja-JP', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+        </div>
+        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+          <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
             {messageData.message}
           </p>
-          <p className="text-xs mt-2 opacity-80 font-medium">タップして全文表示</p>
         </div>
       </div>
-    )
-  }
-
+    </div>
+  )
+}
   return (
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} ${getShapeClasses()}`}
       style={shape === 'circle' ? { display: 'flex', flexDirection: 'column' } : {}}
     >
       {shape === 'speech-bubble' && (
-  <div 
-    className={`absolute -bottom-3 left-6 w-5 h-5 border-l-2 border-b-2 ${style.borderColor} transform rotate-315`}
-    style={{ 
-      background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
-      backgroundImage: style.bgGradient.includes('bg-[') 
-        ? `linear-gradient(to bottom right, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]}, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]})`
-        : undefined
-    }}
-  />
-)}
-      <div className="flex items-start gap-3 mb-3">
+      <div 
+        className={`absolute -bottom-3 left-6 w-5 h-5 border-l-2 border-b-2 ${style.borderColor} transform rotate-315`}
+        style={{ 
+            background: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
+            backgroundImage: style.bgGradient.includes('bg-[')
+            ? `linear-gradient(to bottom right, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]}, ${style.bgGradient.match(/bg-\[(#[^\]]+)\]/)?.[1]})`
+            : undefined
+        }}
+      />
+      )}
+      <div className="flex gap-3 mb-3 items-center justify-center">
         {/* アイコン画像 */}
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
           {messageData.sender_avatar_url ? (
@@ -351,8 +344,8 @@ function MessageCard({
         </div>
         
         {/* 送信者情報 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <div className={`flex-1 min-w-0`}>
+          <div className={`flex items-center gap-2 mb-1 flex-wrap`}>
             <p className="font-bold text-base">{messageData.sender_name}</p>
             {messageData.sender_department && (
               <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
@@ -371,7 +364,7 @@ function MessageCard({
         </div>
       </div>
 
-      <div className={`rounded-xl p-4 ${shape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
+      <div className={`rounded-xl p-5 ${shape === 'circle' ? 'flex-1 flex items-center justify-center' : ''}`}>
         <p className="whitespace-pre-wrap leading-relaxed text-sm">
           {messageData.message}
         </p>
