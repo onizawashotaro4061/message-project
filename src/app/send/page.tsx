@@ -480,7 +480,7 @@ function MessageCardPreview({
       case 'square':
         return 'rounded-2xl'
       case 'circle':
-        return 'rounded-full px-12 py-8 w-full min-h-48'
+        return 'rounded-3xl px-12 py-8 w-full min-h-48'
       case 'speech-bubble':
         return 'rounded-3xl relative'
       case 'octagon':
@@ -501,13 +501,13 @@ function MessageCardPreview({
         className={`relative ${getShapeClasses()} shadow-lg w-full max-w-sm`}
         style={{
           backgroundImage: `url(${style.backgroundImage})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'repeat-y'
+          backgroundSize: style.id === 'letter-paper' ? 'cover' : 'contain',
+          backgroundPosition: style.id === 'letter-paper' ? 'center' : 'top center',
+          backgroundRepeat: style.id === 'letter-paper' ? 'no-repeat' : 'repeat-y'
         }}
       >
         {/* 半透明オーバーレイ */}
-        <div className={`absolute inset-0 ${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} opacity-70`}></div>
+        {/* <div className={`absolute inset-0 ${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} opacity-70`}></div> */}
         {/* コンテンツ */}
         <div className={`relative p-5 ${style.textColor}`}>
 

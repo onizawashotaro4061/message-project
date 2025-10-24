@@ -88,6 +88,15 @@ export const CARD_STYLES: CardStyle[] = [
     backgroundImage: 'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800',
     hasBackgroundImage: true,
   },
+  {
+  id: 'letter-paper',
+  name: '手紙',
+  bgGradient: 'bg-white',
+  borderColor: 'border-gray-200',
+  textColor: 'text-gray-800',
+  backgroundImage: 'https://images.unsplash.com/photo-1615800098799-0ccb261b1f92?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=710',
+  hasBackgroundImage: true,
+},
   // 所属専用カード
   {
     id: 'shikoubu',

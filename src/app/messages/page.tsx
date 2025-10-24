@@ -252,7 +252,7 @@ function MessageCard({
       case 'square':
         return 'rounded-2xl'
       case 'circle':
-        return 'rounded-full px-12 py-8 w-full min-h-48'
+        return 'rounded-3xl px-12 py-8 w-full min-h-48'
       case 'speech-bubble':
         return 'rounded-3xl relative'
       case 'octagon':
@@ -262,16 +262,16 @@ function MessageCard({
     }
   }
 
-  const octagonClipPath = 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
+  const octagonClipPath = 'polygon(0.5rem 0%, calc(100% - 0.5rem) 0%, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0% calc(100% - 0.5rem), 0% 0.5rem)'
   if (style.hasBackgroundImage) {
   return (
     <div 
       className={`relative ${getShapeClasses()} shadow-lg hover:shadow-2xl transition-all duration-300`}
       style={{
         backgroundImage: `url(${style.backgroundImage})`,
-        backgroundSize: 'contain',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'repeat-y'
+        backgroundSize: style.id === 'letter-paper' ? 'cover' : 'contain',
+        backgroundPosition: style.id === 'letter-paper' ? 'center' : 'top center',
+        backgroundRepeat: style.id === 'letter-paper' ? 'no-repeat' : 'repeat-y'
       }}
     >
       {/* 半透明オーバーレイ */}
@@ -309,7 +309,7 @@ function MessageCard({
             </p>
           </div>
         </div>
-        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+        <div className="rounded-xl p-4">
           <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
             {messageData.message}
           </p>
