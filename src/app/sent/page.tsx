@@ -8,8 +8,10 @@ import Link from 'next/link'
 type MessageWithRecipient = Message & {
   recipient_name?: string
   recipient_avatar_url?: string
-  sender_avatar_url?: string  // ← この行を追加
-  sender_name?: string        // ← この行も追加（念のため）
+  recipient_department?: string
+  recipient_role?: string
+  sender_avatar_url?: string
+  sender_name?: string
 }
 
 type CurrentUser = {
@@ -25,10 +27,28 @@ type CurrentUser = {
   avatar_url: string
 }
 
+// 所属の順序
+const DEPARTMENT_ORDER = [
+  '執行部',
+  '運営局',
+  '演出局',
+  '開発局',
+  '広報局',
+  '財務局',
+  '参加団体局',
+  '渉外局',
+  '制作局',
+  '総務局',
+]
+
 export default function SentMessagesPage() {
   const [messages, setMessages] = useState<MessageWithRecipient[]>([])
   const [loading, setLoading] = useState(true)
   const [editingMessage, setEditingMessage] = useState<MessageWithRecipient | null>(null)
+  const [selectedDepartment, setSelectedDepartment] = useState('')
+  const [selectedRole, setSelectedRole] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'date' | 'name'>('date')
   const router = useRouter()
 
   useEffect(() => {
@@ -53,8 +73,8 @@ export default function SentMessagesPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      
-      // 受信者の名前とアバターを取得
+
+      // 受信者の名前、アバター、所属、役職を取得
       const messagesWithRecipients = await Promise.all(
         (data || []).map(async (msg) => {
           const response = await fetch('/api/get-user-by-id', {
@@ -62,20 +82,28 @@ export default function SentMessagesPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: msg.recipient_id })
           })
-          
+
           if (response.ok) {
             const userData = await response.json()
             return {
               ...msg,
               recipient_name: userData.user?.user_metadata?.display_name || userData.user?.email || '不明',
-              recipient_avatar_url: userData.user?.user_metadata?.avatar_url || null
+              recipient_avatar_url: userData.user?.user_metadata?.avatar_url || null,
+              recipient_department: userData.user?.user_metadata?.department || '未分類',
+              recipient_role: userData.user?.user_metadata?.role || null
             }
           }
-          
-          return { ...msg, recipient_name: '不明', recipient_avatar_url: null }
+
+          return {
+            ...msg,
+            recipient_name: '不明',
+            recipient_avatar_url: null,
+            recipient_department: '未分類',
+            recipient_role: null
+          }
         })
       )
-      
+
       setMessages(messagesWithRecipients)
     } catch (error) {
       console.error('Error loading sent messages:', error)
@@ -102,6 +130,39 @@ export default function SentMessagesPage() {
       alert('削除に失敗しました')
     }
   }
+
+  // フィルタリングと並び替え
+  const departments = Array.from(
+    new Set(messages.map(m => m.recipient_department || '未分類'))
+  ).sort((a, b) => {
+    const aIndex = DEPARTMENT_ORDER.indexOf(a)
+    const bIndex = DEPARTMENT_ORDER.indexOf(b)
+    const aOrder = aIndex === -1 ? 999 : aIndex
+    const bOrder = bIndex === -1 ? 999 : bIndex
+    return aOrder - bOrder
+  })
+
+  const roles = [
+    { value: 'executive', label: '役員' },
+    { value: 'vice_director', label: '副局長' },
+    { value: 'section_chief', label: '部門長' },
+  ]
+
+  const filteredAndSortedMessages = messages
+    .filter(msg => {
+      const matchesDepartment = !selectedDepartment || msg.recipient_department === selectedDepartment
+      const matchesRole = !selectedRole || msg.recipient_role === selectedRole
+      const matchesSearch = !searchQuery || (msg.recipient_name || '').includes(searchQuery)
+
+      return matchesDepartment && matchesRole && matchesSearch
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') {
+        return (a.recipient_name || '').localeCompare(b.recipient_name || '')
+      } else {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+    })
 
   if (loading) {
     return (
@@ -158,19 +219,100 @@ export default function SentMessagesPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="text-sm font-semibold text-gray-700 mb-4">
-              {messages.length} 件の送信済みメッセージ
+          <>
+            {/* フィルターと並び替え */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                >
+                  <option value="">すべての所属</option>
+                  {departments.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                >
+                  <option value="">すべての役職</option>
+                  {roles.map(role => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="送信先を検索..."
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                />
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'date' | 'name')}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                >
+                  <option value="date">送信日時順</option>
+                  <option value="name">送信先名順</option>
+                </select>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600">
+                  {filteredAndSortedMessages.length} 件 / {messages.length} 件
+                </p>
+                {(selectedDepartment || selectedRole || searchQuery) && (
+                  <button
+                    onClick={() => {
+                      setSelectedDepartment('')
+                      setSelectedRole('')
+                      setSearchQuery('')
+                    }}
+                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    フィルターをクリア
+                  </button>
+                )}
+              </div>
             </div>
-            {messages.map((msg) => (
-              <SentMessageCard
-                key={msg.id}
-                message={msg}
-                onEdit={() => setEditingMessage(msg)}
-                onDelete={() => handleDelete(msg.id)}
-              />
-            ))}
-          </div>
+
+            {/* メッセージリスト */}
+            <div className="space-y-4">
+              {filteredAndSortedMessages.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+                  <div className="text-6xl mb-4">🔍</div>
+                  <p className="text-gray-600 text-lg font-semibold">
+                    条件に一致するメッセージがありません
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSelectedDepartment('')
+                      setSelectedRole('')
+                      setSearchQuery('')
+                    }}
+                    className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+                  >
+                    フィルターをクリア
+                  </button>
+                </div>
+              ) : (
+                filteredAndSortedMessages.map((msg) => (
+                  <SentMessageCard
+                    key={msg.id}
+                    message={msg}
+                    onEdit={() => setEditingMessage(msg)}
+                    onDelete={() => handleDelete(msg.id)}
+                  />
+                ))
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -208,7 +350,14 @@ function SentMessageCard({
           </div>
           
           <div>
-            <p className="font-semibold text-lg">送信先: {message.recipient_name || '不明'}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-semibold text-lg">送信先: {message.recipient_name || '不明'}</p>
+              {message.recipient_department && (
+                <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium">
+                  {message.recipient_department}
+                </span>
+              )}
+            </div>
             <p className="text-xs opacity-70">
               {new Date(message.created_at).toLocaleString('ja-JP')}
             </p>
