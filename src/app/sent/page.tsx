@@ -283,35 +283,36 @@ export default function SentMessagesPage() {
             </div>
 
             {/* メッセージリスト */}
-            <div className="space-y-4">
-              {filteredAndSortedMessages.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <p className="text-gray-600 text-lg font-semibold">
-                    条件に一致するメッセージがありません
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSelectedDepartment('')
-                      setSelectedRole('')
-                      setSearchQuery('')
-                    }}
-                    className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
-                  >
-                    フィルターをクリア
-                  </button>
-                </div>
-              ) : (
-                filteredAndSortedMessages.map((msg) => (
-                  <SentMessageCard
-                    key={msg.id}
-                    message={msg}
-                    onEdit={() => setEditingMessage(msg)}
-                    onDelete={() => handleDelete(msg.id)}
-                  />
-                ))
-              )}
-            </div>
+            {filteredAndSortedMessages.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+                <div className="text-6xl mb-4">🔍</div>
+                <p className="text-gray-600 text-lg font-semibold">
+                  条件に一致するメッセージがありません
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedDepartment('')
+                    setSelectedRole('')
+                    setSearchQuery('')
+                  }}
+                  className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold"
+                >
+                  フィルターをクリア
+                </button>
+              </div>
+            ) : (
+              <div className="columns-1 md:columns-2 lg:columns-3 gap-5">
+                {filteredAndSortedMessages.map((msg) => (
+                  <div key={msg.id} className="break-inside-avoid mb-5">
+                    <SentMessageCard
+                      message={msg}
+                      onEdit={() => setEditingMessage(msg)}
+                      onDelete={() => handleDelete(msg.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -332,122 +333,127 @@ function SentMessageCard({
 
   if (style.hasBackgroundImage) {
     return (
-      <div
-        className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-        style={{
-          backgroundImage: `url(${style.backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        <div className={`relative p-6 md:p-8 ${style.textColor}`}>
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
-                {message.sender_avatar_url ? (
-                  <img
-                    src={message.sender_avatar_url}
-                    alt={message.sender_name || '送信者'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-xl">👤</div>
+      <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${style.backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        <div className={`absolute inset-0 ${style.bgGradient} opacity-0`}></div>
+        <div className={`relative p-5 ${style.textColor}`}>
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+              {message.recipient_avatar_url ? (
+                <img
+                  src={message.recipient_avatar_url}
+                  alt={message.recipient_name || '送信先'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-2xl">👤</div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <p className="font-bold text-base drop-shadow-lg">To: {message.recipient_name || '不明'}</p>
+                {message.recipient_department && (
+                  <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                    {message.recipient_department}
+                  </span>
                 )}
               </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-lg drop-shadow-lg">送信先: {message.recipient_name || '不明'}</p>
-                  {message.recipient_department && (
-                    <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium">
-                      {message.recipient_department}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs opacity-90 drop-shadow">
-                  {new Date(message.created_at).toLocaleString('ja-JP')}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={onEdit}
-                className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition shadow-md"
-              >
-                編集
-              </button>
-              <button
-                onClick={onDelete}
-                className="px-3 py-1 bg-white text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition shadow-md"
-              >
-                削除
-              </button>
+              <p className="text-xs opacity-90 drop-shadow">
+                {new Date(message.created_at).toLocaleString('ja-JP', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
             </div>
           </div>
-
-          <p className="whitespace-pre-wrap leading-relaxed line-clamp-3 drop-shadow">
-            {message.message}
-          </p>
+          <div className="rounded-xl p-4">
+            <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
+              {message.message}
+            </p>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={onEdit}
+              className="flex-1 px-3 py-2 bg-white/90 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-white transition shadow-md"
+            >
+              編集
+            </button>
+            <button
+              onClick={onDelete}
+              className="flex-1 px-3 py-2 bg-white/90 text-red-600 rounded-lg text-sm font-semibold hover:bg-white transition shadow-md"
+            >
+              削除
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div
-      className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition ${style.textColor}`}
-    >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-start gap-3 flex-1">
-          {/* 送信者のアイコン（sender_avatar_url を使用） */}
-          <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/50">
-            {message.sender_avatar_url ? (
-              <img
-                src={message.sender_avatar_url}
-                alt={message.sender_name || '送信者'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-xl">👤</div>
+    <div className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} rounded-2xl shadow-lg hover:shadow-2xl`}>
+      <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
+        <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {message.recipient_avatar_url ? (
+            <img
+              src={message.recipient_avatar_url}
+              alt={message.recipient_name || '送信先'}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="text-2xl">👤</div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <p className="font-bold text-base">To: {message.recipient_name || '不明'}</p>
+            {message.recipient_department && (
+              <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                {message.recipient_department}
+              </span>
             )}
           </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <p className="font-semibold text-lg">送信先: {message.recipient_name || '不明'}</p>
-              {message.recipient_department && (
-                <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium">
-                  {message.recipient_department}
-                </span>
-              )}
-            </div>
-            <p className="text-xs opacity-70">
-              {new Date(message.created_at).toLocaleString('ja-JP')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={onEdit}
-            className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition"
-          >
-            編集
-          </button>
-          <button
-            onClick={onDelete}
-            className="px-3 py-1 bg-white text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition"
-          >
-            削除
-          </button>
+          <p className="text-xs opacity-80">
+            {new Date(message.created_at).toLocaleString('ja-JP', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
         </div>
       </div>
 
-      <p className="whitespace-pre-wrap leading-relaxed line-clamp-3">
-        {message.message}
-      </p>
+      <div className="rounded-xl px-5 pb-3">
+        <p className="whitespace-pre-wrap leading-relaxed text-sm">
+          {message.message}
+        </p>
+      </div>
+
+      <div className="flex gap-2 px-5 pb-5">
+        <button
+          onClick={onEdit}
+          className="flex-1 px-3 py-2 bg-white/90 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-white transition"
+        >
+          編集
+        </button>
+        <button
+          onClick={onDelete}
+          className="flex-1 px-3 py-2 bg-white/90 text-red-600 rounded-lg text-sm font-semibold hover:bg-white transition"
+        >
+          削除
+        </button>
+      </div>
     </div>
   )
 }
