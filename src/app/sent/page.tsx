@@ -483,7 +483,7 @@ function MessagePreview({
                 </p>
               </div>
             </div>
-            <div className="bg-white/20 rounded-xl p-4 border border-white/30">
+            <div className="rounded-xl p-4">
               <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
                 {message || 'メッセージがここに表示されます...'}
               </p>
