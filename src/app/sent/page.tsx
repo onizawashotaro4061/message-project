@@ -330,6 +330,71 @@ function SentMessageCard({
 }) {
   const style = CARD_STYLES.find((s) => s.id === message.card_style) || CARD_STYLES[0]
 
+  if (style.hasBackgroundImage) {
+    return (
+      <div
+        className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+        style={{
+          backgroundImage: `url(${style.backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className={`relative p-6 md:p-8 ${style.textColor}`}>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
+                {message.sender_avatar_url ? (
+                  <img
+                    src={message.sender_avatar_url}
+                    alt={message.sender_name || '送信者'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-xl">👤</div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-lg drop-shadow-lg">送信先: {message.recipient_name || '不明'}</p>
+                  {message.recipient_department && (
+                    <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-medium">
+                      {message.recipient_department}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs opacity-90 drop-shadow">
+                  {new Date(message.created_at).toLocaleString('ja-JP')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={onEdit}
+                className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition shadow-md"
+              >
+                編集
+              </button>
+              <button
+                onClick={onDelete}
+                className="px-3 py-1 bg-white text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition shadow-md"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+
+          <p className="whitespace-pre-wrap leading-relaxed line-clamp-3 drop-shadow">
+            {message.message}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition ${style.textColor}`}
@@ -348,7 +413,7 @@ function SentMessageCard({
               <div className="text-xl">👤</div>
             )}
           </div>
-          
+
           <div>
             <div className="flex items-center gap-2 mb-1">
               <p className="font-semibold text-lg">送信先: {message.recipient_name || '不明'}</p>
@@ -363,7 +428,7 @@ function SentMessageCard({
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <button
             onClick={onEdit}
