@@ -74,35 +74,40 @@ export default function SentMessagesPage() {
 
       if (error) throw error
 
-      // 受信者の名前、アバター、所属、役職を取得
-      const messagesWithRecipients = await Promise.all(
-        (data || []).map(async (msg) => {
-          const response = await fetch('/api/get-user-by-id', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: msg.recipient_id })
-          })
+      if (!data || data.length === 0) {
+        setMessages([])
+        setLoading(false)
+        return
+      }
 
-          if (response.ok) {
-            const userData = await response.json()
-            return {
-              ...msg,
-              recipient_name: userData.user?.user_metadata?.display_name || userData.user?.email || '不明',
-              recipient_avatar_url: userData.user?.user_metadata?.avatar_url || null,
-              recipient_department: userData.user?.user_metadata?.department || '未分類',
-              recipient_role: userData.user?.user_metadata?.role || null
-            }
-          }
+      // ユニークなrecipient_idのリストを作成
+      const uniqueRecipientIds = [...new Set(data.map(msg => msg.recipient_id))]
 
-          return {
-            ...msg,
-            recipient_name: '不明',
-            recipient_avatar_url: null,
-            recipient_department: '未分類',
-            recipient_role: null
-          }
-        })
-      )
+      // バッチAPIで一度に全ユーザー情報を取得
+      const response = await fetch('/api/get-users-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: uniqueRecipientIds })
+      })
+
+      let usersMap: Record<string, any> = {}
+
+      if (response.ok) {
+        const responseData = await response.json()
+        usersMap = responseData.users || {}
+      }
+
+      // メッセージにユーザー情報をマッピング
+      const messagesWithRecipients = data.map((msg) => {
+        const recipientInfo = usersMap[msg.recipient_id]
+        return {
+          ...msg,
+          recipient_name: recipientInfo?.user_metadata?.display_name || recipientInfo?.email || '不明',
+          recipient_avatar_url: recipientInfo?.user_metadata?.avatar_url || null,
+          recipient_department: recipientInfo?.user_metadata?.department || '未分類',
+          recipient_role: recipientInfo?.user_metadata?.role || null
+        }
+      })
 
       setMessages(messagesWithRecipients)
     } catch (error) {

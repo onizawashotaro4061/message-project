@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,27 +11,9 @@ type MessageWithSender = Message & {
   card_shape?: 'rectangle' | 'square' | 'circle' | 'speech-bubble' | 'octagon'
 }
 
-type SortType = 'latest'
-
-// 所属の順序（削除可能ですが、念のため残しておきます）
-const DEPARTMENT_ORDER = [
-  '執行部',
-  '運営局',
-  '演出局',
-  '開発局',
-  '広報局',
-  '財務局',
-  '参加団体局',
-  '渉外局',
-  '制作局',
-  '総務局',
-]
-
 export default function MessagesPage() {
   const [messages, setMessages] = useState<MessageWithSender[]>([])
-  const [sortedMessages, setSortedMessages] = useState<MessageWithSender[]>([])
   const [loading, setLoading] = useState(true)
-  const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -45,12 +27,15 @@ export default function MessagesPage() {
 
       loadMessages(user.id)
     }
-    
+
     checkUser()
   }, [router])
 
-  useEffect(() => {
-    sortMessages()
+  // useMemoで自動的にソート（依存配列問題を解決）
+  const sortedMessages = useMemo(() => {
+    return [...messages].sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
   }, [messages])
 
   const loadMessages = async (userId: string) => {
@@ -61,48 +46,47 @@ export default function MessagesPage() {
         .eq('recipient_id', userId)
 
       if (error) throw error
-      
-      const messagesWithSenderInfo = await Promise.all(
-        (data || []).map(async (msg) => {
-          const response = await fetch('/api/get-user-by-id', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: msg.sender_id })
-          })
-          
-          if (response.ok) {
-            const userData = await response.json()
-            return {
-              ...msg,
-              sender_avatar_url: userData.user?.user_metadata?.avatar_url || null,
-              sender_department: userData.user?.user_metadata?.department || '未分類',
-              card_shape: msg.card_shape || 'square'
-            }
-          }
-          
-          return { 
-            ...msg, 
-            sender_avatar_url: null,
-            sender_department: '未分類',
-            card_shape: 'square' as const
-          }
-        })
-      )
-      
+
+      if (!data || data.length === 0) {
+        setMessages([])
+        setLoading(false)
+        return
+      }
+
+      // ユニークなsender_idのリストを作成
+      const uniqueSenderIds = [...new Set(data.map(msg => msg.sender_id))]
+
+      // バッチAPIで一度に全ユーザー情報を取得
+      const response = await fetch('/api/get-users-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: uniqueSenderIds })
+      })
+
+      let usersMap: Record<string, any> = {}
+
+      if (response.ok) {
+        const responseData = await response.json()
+        usersMap = responseData.users || {}
+      }
+
+      // メッセージにユーザー情報をマッピング
+      const messagesWithSenderInfo = data.map((msg) => {
+        const senderInfo = usersMap[msg.sender_id]
+        return {
+          ...msg,
+          sender_avatar_url: senderInfo?.user_metadata?.avatar_url || null,
+          sender_department: senderInfo?.user_metadata?.department || '未分類',
+          card_shape: msg.card_shape || 'square'
+        }
+      })
+
       setMessages(messagesWithSenderInfo)
     } catch (error) {
       console.error('Error loading messages:', error)
     } finally {
       setLoading(false)
     }
-  }
-
-  const sortMessages = () => {
-    const sorted = [...messages]
-    sorted.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-    setSortedMessages(sorted)
   }
 
   const handleLogout = async () => {
@@ -195,11 +179,7 @@ export default function MessagesPage() {
             <div className="columns-1 md:columns-2 lg:columns-3 gap-5">
               {sortedMessages.map((msg) => (
                 <div key={msg.id} className="break-inside-avoid mb-5">
-                  <MessageCard 
-                    messageData={msg}
-                    isExpanded={expandedMessageId === msg.id}
-                    onToggleExpand={() => setExpandedMessageId(expandedMessageId === msg.id ? null : msg.id)}
-                  />
+                  <MessageCard messageData={msg} />
                 </div>
               ))}
             </div>
@@ -210,17 +190,12 @@ export default function MessagesPage() {
   )
 }
 
-function MessageCard({ 
-  messageData, 
-  isExpanded,
-  onToggleExpand 
-}: { 
+function MessageCard({
+  messageData
+}: {
   messageData: MessageWithSender
-  isExpanded: boolean
-  onToggleExpand: () => void
 }) {
   const style = CARD_STYLES.find((s) => s.id === messageData.card_style) || CARD_STYLES[0]
-  const shape = messageData.card_shape || 'square'
 
 
   if (style.hasBackgroundImage) {
