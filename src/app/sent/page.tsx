@@ -12,6 +12,19 @@ type MessageWithRecipient = Message & {
   sender_name?: string        // ← この行も追加（念のため）
 }
 
+type CurrentUser = {
+  id: string
+  email: string
+  user_metadata: {
+    display_name?: string
+    department?: string
+    role?: string
+    avatar_url?: string
+  }
+  department: string
+  avatar_url: string
+}
+
 export default function SentMessagesPage() {
   const [messages, setMessages] = useState<MessageWithRecipient[]>([])
   const [loading, setLoading] = useState(true)
@@ -237,7 +250,7 @@ function EditMessageForm({
   const [messageText, setMessageText] = useState(message.message)
   const [selectedStyle, setSelectedStyle] = useState(message.card_style)
   const [loading, setLoading] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
   useEffect(() => {
     const loadCurrentUser = async () => {
