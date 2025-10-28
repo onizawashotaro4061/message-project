@@ -191,13 +191,6 @@ export default function MessagesPage() {
           </div>
         ) : (
           <>
-            {/* コントロールバー（メッセージ件数のみ） */}
-            <div className="bg-white rounded-lg px-4 py-3 shadow-sm mb-5">
-              <p className="text-sm font-semibold text-gray-700">
-                {messages.length} 件のメッセージ
-              </p>
-            </div>
-
             {/* タイル表示 */}
             <div className="columns-1 md:columns-2 lg:columns-3 gap-5">
               {sortedMessages.map((msg) => (
