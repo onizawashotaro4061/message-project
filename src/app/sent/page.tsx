@@ -237,8 +237,37 @@ function EditMessageForm({
   const [messageText, setMessageText] = useState(message.message)
   const [selectedStyle, setSelectedStyle] = useState(message.card_style)
   const [loading, setLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setCurrentUser({
+          id: user.id,
+          email: user.email || '',
+          user_metadata: user.user_metadata || {},
+          department: user.user_metadata?.department || '未分類',
+          avatar_url: user.user_metadata?.avatar_url || '',
+        })
+      }
+    }
+    loadCurrentUser()
+  }, [])
+
+  const availableStyles = CARD_STYLES.filter(style => {
+    if (!style.departments && !style.roles) return true
+    if (style.departments && style.departments.includes(currentUser?.department || '')) return true
+    if (style.roles && style.roles.includes(currentUser?.user_metadata?.role || '')) return true
+    return false
+  })
 
   const handleSave = async () => {
+    if (!messageText.trim()) {
+      alert('メッセージを入力してください')
+      return
+    }
+
     setLoading(true)
     try {
       const { error } = await supabase
@@ -266,64 +295,228 @@ function EditMessageForm({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">メッセージを編集</h2>
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">メッセージを編集</h2>
+            <button
+              onClick={onCancel}
+              className="text-gray-500 hover:text-gray-700 transition"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                メッセージ
-              </label>
-              <textarea
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                rows={8}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-900"
-              />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 左側: 編集エリア */}
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    メッセージ <span className="text-red-500">*</span>
+                  </label>
+                  <span className={`text-xs font-medium ${messageText.length > 1000 ? 'text-red-600' : 'text-gray-500'}`}>
+                    {messageText.length} / 1000
+                  </span>
+                </div>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  maxLength={1000}
+                  rows={10}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none text-gray-900"
+                  placeholder="メッセージを入力してください..."
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                カードデザイン
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {CARD_STYLES.map((style) => (
-                  <button
-                    key={style.id}
-                    type="button"
-                    onClick={() => setSelectedStyle(style.id)}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedStyle === style.id
-                        ? 'border-indigo-600 ring-2 ring-indigo-300'
-                        : 'border-gray-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    <div
-                      className={`h-20 rounded bg-gradient-to-br ${style.bgGradient} mb-2 border ${style.borderColor}`}
-                    />
-                    <p className="text-sm font-medium text-gray-700">{style.name}</p>
-                  </button>
-                ))}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  カードデザイン <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2">
+                  {availableStyles.map((style) => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => setSelectedStyle(style.id)}
+                      className={`p-3 rounded-lg border-2 transition ${
+                        selectedStyle === style.id
+                          ? 'border-indigo-600 ring-2 ring-indigo-300'
+                          : 'border-gray-200 hover:border-indigo-400'
+                      }`}
+                    >
+                      {style.hasBackgroundImage ? (
+                        <div className="relative h-20 rounded mb-2 border overflow-hidden">
+                          <img
+                            src={style.backgroundImage}
+                            alt={style.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className={`h-20 rounded bg-gradient-to-br ${style.bgGradient} mb-2 border ${style.borderColor}`}
+                        />
+                      )}
+                      <p className="text-sm font-medium text-gray-700">{style.name}</p>
+                    </button>
+                  ))}
+                </div>
+                {currentUser?.department && (
+                  <p className="text-xs text-indigo-600 mt-2">
+                    ✨ {currentUser.department}専用カードが使えます
+                  </p>
+                )}
+                {currentUser?.user_metadata?.role && (
+                  <p className="text-xs text-purple-600 mt-1">
+                    👑 役職専用カードが使えます
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 transition"
-              >
-                {loading ? '保存中...' : '保存'}
-              </button>
-              <button
-                onClick={onCancel}
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition"
-              >
-                キャンセル
-              </button>
+            {/* 右側: プレビューエリア */}
+            <div className="lg:sticky lg:top-8 lg:self-start">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                プレビュー
+              </label>
+              <MessagePreview
+                senderName={currentUser?.user_metadata?.display_name || message.sender_name || 'あなた'}
+                recipientName={message.recipient_name || '受信者'}
+                message={messageText}
+                cardStyle={selectedStyle}
+                senderAvatarUrl={currentUser?.avatar_url}
+                senderDepartment={currentUser?.department}
+              />
             </div>
           </div>
+
+          <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+            <button
+              onClick={handleSave}
+              disabled={loading || !messageText.trim()}
+              className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-lg"
+            >
+              {loading ? '保存中...' : '変更を保存'}
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MessagePreview({
+  senderName,
+  recipientName,
+  message,
+  cardStyle,
+  senderAvatarUrl,
+  senderDepartment,
+}: {
+  senderName: string
+  recipientName: string
+  message: string
+  cardStyle: string
+  senderAvatarUrl?: string
+  senderDepartment?: string
+}) {
+  const style = CARD_STYLES.find((s) => s.id === cardStyle) || CARD_STYLES[0]
+  const hasGradient = style.bgGradient.includes('from-')
+
+  if (style.hasBackgroundImage) {
+    return (
+      <div className="flex justify-center">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg w-full max-w-sm"
+          style={{
+            backgroundImage: `url(${style.backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          <div className={`relative p-5 ${style.textColor}`}>
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
+                {senderAvatarUrl ? (
+                  <img
+                    src={senderAvatarUrl}
+                    alt={senderName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-2xl">👤</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <p className="font-bold text-base drop-shadow-lg">{senderName}</p>
+                  {senderDepartment && (
+                    <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                      {senderDepartment}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs opacity-90 drop-shadow">
+                  To: {recipientName}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/20 rounded-xl p-4 border border-white/30">
+              <p className="whitespace-pre-wrap leading-relaxed text-sm drop-shadow">
+                {message || 'メッセージがここに表示されます...'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex justify-center">
+      <div
+        className={`${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} border-2 ${style.borderColor} ${style.textColor} w-full max-w-sm rounded-3xl shadow-lg hover:shadow-2xl transition-shadow`}
+      >
+        <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
+          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {senderAvatarUrl ? (
+              <img
+                src={senderAvatarUrl}
+                alt={senderName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-2xl">👤</div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <p className="font-bold text-base">{senderName}</p>
+              {senderDepartment && (
+                <span className="px-1.5 py-0.5 bg-white/30 rounded text-xs font-medium whitespace-nowrap">
+                  {senderDepartment}
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-80">
+              To: {recipientName}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl px-5 pb-5">
+          <p className="whitespace-pre-wrap leading-relaxed text-sm">
+            {message || 'メッセージがここに表示されます...'}
+          </p>
         </div>
       </div>
     </div>
