@@ -130,7 +130,7 @@ export default function MessagesPage() {
                 className="text-gray-600 hover:text-gray-800 transition p-2 hover:bg-gray-100 rounded-lg"
                 title="ホームへ"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </Link>
@@ -213,24 +213,6 @@ export default function MessagesPage() {
           </>
         )}
       </div>
-
-      {/* モーダル（ハート型展開用） */}
-      {expandedMessageId && (
-        <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-          onClick={() => setExpandedMessageId(null)}
-        >
-          <div 
-            className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExpandedMessageModal 
-              messageData={sortedMessages.find(m => m.id === expandedMessageId)!}
-              onClose={() => setExpandedMessageId(null)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -259,11 +241,11 @@ function MessageCard({
 }}
     >
       {/* 半透明オーバーレイ */}
-      <div className={`absolute inset-0 ${style.bgGradient} opacity-70`}></div>
+      <div className={`absolute inset-0 ${style.bgGradient} opacity-0`}></div>
       {/* コンテンツ */}
       <div className={`relative p-5 ${style.textColor}`}>
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
+          <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
             {messageData.sender_avatar_url ? (
               <img
                 src={messageData.sender_avatar_url}
@@ -304,7 +286,6 @@ function MessageCard({
 }
   return (
     <div className={`bg-gradient-to-br ${style.bgGradient} border-2 ${style.borderColor} transition-all duration-300 ${style.textColor} rounded-2xl shadow-lg hover:shadow-2xl`}>
-      
       <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
         {/* アイコン画像 */}
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -318,7 +299,6 @@ function MessageCard({
             <div className="text-2xl">👤</div>
           )}
         </div>
-        
         {/* 送信者情報 */}
         <div className={`flex-1 min-w-0`}>
           <div className={`flex items-center gap-2 mb-1 flex-wrap`}>
@@ -342,69 +322,6 @@ function MessageCard({
 
       <div className="rounded-xl px-5 pb-5">
         <p className="whitespace-pre-wrap leading-relaxed text-sm">
-          {messageData.message}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function ExpandedMessageModal({ 
-  messageData, 
-  onClose 
-}: { 
-  messageData: MessageWithSender
-  onClose: () => void
-}) {
-  const style = CARD_STYLES.find((s) => s.id === messageData.card_style) || CARD_STYLES[0]
-
-  return (
-    <div>
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-            {messageData.sender_avatar_url ? (
-              <img
-                src={messageData.sender_avatar_url}
-                alt={messageData.sender_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-2xl">👤</div>
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-bold text-xl text-gray-900">{messageData.sender_name}</p>
-              {messageData.sender_department && (
-                <span className="px-2 py-1 bg-gray-200 rounded text-xs font-medium text-gray-700">
-                  {messageData.sender_department}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-500">
-              {new Date(messageData.created_at).toLocaleString('ja-JP', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div className={`bg-gradient-to-br ${style.bgGradient} ${style.textColor} rounded-2xl p-6 border-2 ${style.borderColor}`}>
-        <p className="whitespace-pre-wrap leading-relaxed text-base">
           {messageData.message}
         </p>
       </div>

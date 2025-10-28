@@ -429,8 +429,6 @@ function MessageCardPreview({
         {/* <div className={`absolute inset-0 ${hasGradient ? 'bg-gradient-to-br ' : ''}${style.bgGradient} opacity-70`}></div> */}
         {/* コンテンツ */}
         <div className={`relative p-5 ${style.textColor}`}>
-
-            
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
                 {senderAvatarUrl ? (

@@ -58,7 +58,7 @@ export const CARD_STYLES: CardStyle[] = [
     name: '軌光',
     bgGradient: 'bg-[#D8CE48]',
   borderColor: 'border-[#D8CE48]',
-    textColor: 'text-white',
+    textColor: 'text-black',
   },
   // 背景画像
   {
