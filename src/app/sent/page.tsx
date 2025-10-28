@@ -90,7 +90,16 @@ export default function SentMessagesPage() {
         body: JSON.stringify({ userIds: uniqueRecipientIds })
       })
 
-      let usersMap: Record<string, any> = {}
+      type UserData = {
+        email?: string
+        user_metadata?: {
+          display_name?: string
+          avatar_url?: string
+          department?: string
+          role?: string
+        }
+      }
+      let usersMap: Record<string, UserData> = {}
 
       if (response.ok) {
         const responseData = await response.json()

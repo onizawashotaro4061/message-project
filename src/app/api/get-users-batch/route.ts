@@ -33,7 +33,12 @@ export async function POST(request: Request) {
     })
 
     // 一度に全ユーザー情報を取得
-    const usersMap: Record<string, any> = {}
+    type UserData = {
+      id: string
+      email: string | undefined
+      user_metadata: Record<string, unknown>
+    }
+    const usersMap: Record<string, UserData> = {}
 
     // Supabase Authは一度に複数ユーザーを取得できないので、
     // Promise.allで並列実行して効率化

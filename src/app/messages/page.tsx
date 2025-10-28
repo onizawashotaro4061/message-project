@@ -63,7 +63,15 @@ export default function MessagesPage() {
         body: JSON.stringify({ userIds: uniqueSenderIds })
       })
 
-      let usersMap: Record<string, any> = {}
+      type UserData = {
+        email?: string
+        user_metadata?: {
+          display_name?: string
+          avatar_url?: string
+          department?: string
+        }
+      }
+      let usersMap: Record<string, UserData> = {}
 
       if (response.ok) {
         const responseData = await response.json()
