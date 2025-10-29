@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -12,16 +12,16 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const router = useRouter()
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       router.push('/messages')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkUser()
+  }, [checkUser])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +36,7 @@ export default function LoginPage() {
       
       if (error) throw error
       router.push('/messages')
-    } catch (error) {
+    } catch {
       setMessage('❌ メールアドレスまたはパスワードが正しくありません')
     } finally {
       setLoading(false)
@@ -94,17 +94,30 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 mb-3 text-left">
-            ※役職者向け
-            <br />メールアドレスは明治メールを使用してください。
-            <br />初回ログイン時は仮パスワードを使用してください
-            <br />役員：meiji2024
-            <br />副局長・部門長：Meidaisai141
-          </p>
-          <Link href="/signup" className="text-sm text-indigo-600 hover:underline font-medium">
-            アカウントをお持ちでない方は新規登録
-          </Link>
+        <div className="mt-6">
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-4">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="text-2xl">🔑</div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-blue-900 mb-2">
+                  役職者向け初回ログイン情報
+                </p>
+                <div className="space-y-1 text-sm text-blue-800">
+                  <p>📧 メールアドレス：明治メールを使用</p>
+                  <p className="font-semibold mt-3">🔐 初回仮パスワード：</p>
+                  <div className="ml-4 space-y-1">
+                    <p>• 役員：<code className="bg-blue-100 px-2 py-1 rounded font-mono font-bold text-blue-900">meiji2024</code></p>
+                    <p>• 副局長・部門長：<code className="bg-blue-100 px-2 py-1 rounded font-mono font-bold text-blue-900">Meidaisai141</code></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center">
+            <Link href="/signup" className="text-sm text-indigo-600 hover:underline font-medium">
+              アカウントをお持ちでない方は新規登録
+            </Link>
+          </div>
         </div>
       </div>
     </div>

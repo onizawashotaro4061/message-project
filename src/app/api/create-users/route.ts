@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         // 仮パスワード: meiji2024
         const tempPassword = 'meiji2024'
 
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        const { error } = await supabaseAdmin.auth.admin.createUser({
           email: executive.email,
           password: tempPassword,
           email_confirm: true,

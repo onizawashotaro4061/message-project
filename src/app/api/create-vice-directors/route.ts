@@ -94,7 +94,7 @@ export async function POST(request: Request) {
           // 新規ユーザー作成
           const tempPassword = 'Meidaisai141'
 
-          const { data, error } = await supabaseAdmin.auth.admin.createUser({
+          const { error } = await supabaseAdmin.auth.admin.createUser({
             email: viceDirector.email,
             password: tempPassword,
             email_confirm: true,

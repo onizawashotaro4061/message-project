@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, CARD_STYLES, User } from '@/lib/supabase'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // 所属の順序
 const DEPARTMENT_ORDER = [
@@ -331,10 +332,11 @@ export default function SendMessagePage() {
                     >
                       {style.hasBackgroundImage ? (
   <div className="relative h-20 rounded mb-2 border overflow-hidden">
-    <img 
-      src={style.backgroundImage} 
+    <Image
+      src={style.backgroundImage || ''}
       alt={style.name}
-      className="absolute inset-0 w-full h-full object-cover"
+      fill
+      className="object-cover"
     />
   </div>
 ) : (
@@ -363,11 +365,6 @@ export default function SendMessagePage() {
                 <p className="text-sm font-medium text-gray-700 mb-3">プレビュー</p>
                 <MessageCardPreview
                   senderName={currentUser?.user_metadata?.display_name || 'あなた'}
-                  recipientName={
-                    selectedUserId 
-                      ? users.find(u => u.id === selectedUserId)?.user_metadata?.display_name || '未選択'
-                      : '未選択'
-                  }
                   message={message}
                   cardStyle={selectedStyle}
                   cardShape="square"  // 固定
@@ -393,7 +390,6 @@ export default function SendMessagePage() {
 
 function MessageCardPreview({
   senderName,
-  recipientName,
   message,
   cardStyle,
   cardShape,
@@ -401,7 +397,6 @@ function MessageCardPreview({
   senderDepartment,
 }: {
   senderName: string
-  recipientName: string
   message: string
   cardStyle: string
   cardShape: CardShape
@@ -432,9 +427,11 @@ function MessageCardPreview({
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
                 {senderAvatarUrl ? (
-                  <img
+                  <Image
                     src={senderAvatarUrl}
                     alt={senderName}
+                    width={40}
+                    height={40}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -486,9 +483,11 @@ function MessageCardPreview({
           {/* アイコン画像 */}
           <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
             {senderAvatarUrl ? (
-              <img
+              <Image
                 src={senderAvatarUrl}
                 alt={senderName}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             ) : (

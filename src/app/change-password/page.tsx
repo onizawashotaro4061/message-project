@@ -1,13 +1,12 @@
 'use client'
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function ChangePasswordPage() {
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,16 +14,16 @@ export default function ChangePasswordPage() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('error')
   const router = useRouter()
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/login')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkUser()
+  }, [checkUser])
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +53,6 @@ export default function ChangePasswordPage() {
 
       setMessage('✅ パスワードを変更しました')
       setMessageType('success')
-      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
 

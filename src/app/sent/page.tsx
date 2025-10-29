@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type MessageWithRecipient = Message & {
   recipient_name?: string
@@ -362,9 +363,11 @@ function SentMessageCard({
           <div className="flex items-start gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
               {message.recipient_avatar_url ? (
-                <img
+                <Image
                   src={message.recipient_avatar_url}
                   alt={message.recipient_name || '送信先'}
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -419,9 +422,11 @@ function SentMessageCard({
       <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
           {message.recipient_avatar_url ? (
-            <img
+            <Image
               src={message.recipient_avatar_url}
               alt={message.recipient_name || '送信先'}
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -533,7 +538,7 @@ function EditMessageForm({
         card_style: selectedStyle,
       })
       alert('メッセージを更新しました')
-    } catch (error) {
+    } catch {
       alert('更新に失敗しました')
     } finally {
       setLoading(false)
@@ -596,10 +601,11 @@ function EditMessageForm({
                     >
                       {style.hasBackgroundImage ? (
                         <div className="relative h-20 rounded mb-2 border overflow-hidden">
-                          <img
-                            src={style.backgroundImage}
+                          <Image
+                            src={style.backgroundImage || ''}
                             alt={style.name}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         </div>
                       ) : (
@@ -694,9 +700,11 @@ function MessagePreview({
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white/60 shadow-md">
                 {senderAvatarUrl ? (
-                  <img
+                  <Image
                     src={senderAvatarUrl}
                     alt={senderName}
+                    width={40}
+                    height={40}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -736,9 +744,11 @@ function MessagePreview({
         <div className="flex gap-3 mb-3 items-center justify-center px-5 pt-5">
           <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
             {senderAvatarUrl ? (
-              <img
+              <Image
                 src={senderAvatarUrl}
                 alt={senderName}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             ) : (

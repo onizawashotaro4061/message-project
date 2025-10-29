@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import imageCompression from 'browser-image-compression'
 import { User } from '@supabase/supabase-js'
 
@@ -18,11 +19,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    loadUserProfile()
-  }, [])
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -41,7 +38,11 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadUserProfile()
+  }, [loadUserProfile])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -212,9 +213,11 @@ export default function ProfilePage() {
               <div className="flex items-center gap-6">
                 <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-4 border-gray-300">
                   {avatarPreview ? (
-                    <img
+                    <Image
                       src={avatarPreview}
                       alt="アイコンプレビュー"
+                      width={128}
+                      height={128}
                       className="w-full h-full object-cover"
                     />
                   ) : (

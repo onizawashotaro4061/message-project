@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { supabase, Message, CARD_STYLES } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type MessageWithSender = Message & {
   sender_avatar_url?: string
@@ -223,9 +224,11 @@ function MessageCard({
         <div className="flex items-start gap-3 mb-3">
           <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
             {messageData.sender_avatar_url ? (
-              <img
+              <Image
                 src={messageData.sender_avatar_url}
                 alt={messageData.sender_name}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -266,9 +269,11 @@ function MessageCard({
         {/* アイコン画像 */}
         <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center overflow-hidden flex-shrink-0">
           {messageData.sender_avatar_url ? (
-            <img
+            <Image
               src={messageData.sender_avatar_url}
               alt={messageData.sender_name}
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           ) : (
